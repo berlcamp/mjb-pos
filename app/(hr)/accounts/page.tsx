@@ -19,9 +19,7 @@ import AddEditModal from './AddEditModal'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [approving, setApproving] = useState(false)
   const [list, setList] = useState<AccountTypes[]>([])
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
@@ -304,15 +302,6 @@ const Page: React.FC = () => {
         <AddEditModal
           editData={editData}
           hideModal={() => setShowAddModal(false)}/>
-      )
-    }
-    {/* Delete Modal */}
-    {
-      showDeleteModal && (
-        <DeleteModal
-          id={selectedId}
-          table='hrm_registrations'
-          hideModal={() => setShowDeleteModal(false)}/>
       )
     }
   </>

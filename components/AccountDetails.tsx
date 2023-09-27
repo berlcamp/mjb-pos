@@ -175,6 +175,8 @@ const AccountDetails = ({ hideModal, shouldUpdateRedux, id }: ModalProps) => {
         setLoading(false)
       }
     }
+
+    void fetchAccountDetails()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, reset])
 

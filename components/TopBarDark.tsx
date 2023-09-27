@@ -8,8 +8,7 @@ export default function TopBarDark ({ isGuest }: { isGuest?: boolean }) {
     <div className='fixed top-0 z-20 w-full'>
       <div className='p-2 flex items-center bg-gray-800'>
         <div className='flex-1'>
-          <div className='font-semibold text-white'>Welcome back!</div>
-          <div className='font-semibold text-white'>RDT Data Manager</div>
+          {/* <div className='font-semibold text-white'>RDT Data Manager</div> */}
         </div>
         <div className='flex space-x-2'>
           {

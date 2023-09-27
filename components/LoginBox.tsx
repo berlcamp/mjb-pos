@@ -93,7 +93,8 @@ export default function LoginBox () {
         <div className='flex items-start justify-center'>
           <div className='bg-white p-4 w-96 rounded-lg shadow-lg'>
             <div className="text-center">
-              <h4 className="font-semibold mt-1 mb-12 pb-1">RDT Data Manager v1.0.0</h4>
+              <h3 className="font-semibold text-sm text-gray-500 mt-1 mb-2 pb-1">Welcome back!</h3>
+              <h4 className="font-semibold mt-1 mb-12 text-gray-700 pb-1">RDT Data Manager v1.0.0</h4>
             </div>
           </div>
         </div>

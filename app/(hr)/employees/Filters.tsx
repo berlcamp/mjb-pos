@@ -28,7 +28,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (keyword.trim() === '') return
+    if (keyword.trim() === '' && selectedStatus === '') return
 
     // pass filter values to parent
     setFilterKeyword(keyword)

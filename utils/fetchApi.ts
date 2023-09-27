@@ -2,7 +2,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { fullTextQuery } from '@/utils/text-helper'
 import { format } from 'date-fns'
 
-import type { Employee, excludedItemsTypes } from '@/types'
+import type { AccountTypes, Employee, excludedItemsTypes } from '@/types'
 
 const supabase = createClientComponentClient()
 
@@ -15,13 +15,14 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      const searchQuery: string = fullTextQuery(filters.filterKeyword)
-      query = query.textSearch('fts', searchQuery)
+      // const searchQuery: string = fullTextQuery(filters.filterKeyword)
+      // query = query.textSearch('fts', searchQuery)
+      query = query.or(`firstname.ilike.%${filters.filterKeyword}%,middlename.ilike.%${filters.filterKeyword}%,lastname.ilike.%${filters.filterKeyword}%`)
     }
 
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
-      query = query.neq('status', filters.filterStatus)
+      query = query.eq('status', filters.filterStatus)
     }
 
     // Per Page from context
@@ -82,7 +83,7 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
       throw new Error(error.message)
     }
 
-    const data: Employee[] = userData
+    const data: AccountTypes[] = userData
 
     return { data, count }
   } catch (error) {

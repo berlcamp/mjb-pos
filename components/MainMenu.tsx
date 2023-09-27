@@ -1,5 +1,5 @@
 'use client'
-import { ChartBarSquareIcon, CreditCardIcon, DocumentDuplicateIcon, HomeIcon, PencilSquareIcon, TableCellsIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { ChartBarSquareIcon, Cog6ToothIcon, CreditCardIcon, DocumentDuplicateIcon, FolderIcon, HomeIcon, ListBulletIcon, PencilSquareIcon, TableCellsIcon, UsersIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 const MainMenu: React.FC = () => {
@@ -28,7 +28,7 @@ const MainMenu: React.FC = () => {
             </Link>
           </div>
           <div className='px-2 py-4 lg:w-96 border text-gray-600 rounded-lg bg-white shadow-md flex flex-col space-y-2'>
-            <div className='text-gray-700 text-lg font-semibold'>RDM</div>
+            {/* <div className='text-gray-700 text-lg font-semibold'>RDM</div> */}
             <Link href='/'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
@@ -65,7 +65,7 @@ const MainMenu: React.FC = () => {
             <Link href='/employees'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
-                  <UsersIcon className='w-8 h-8'/>
+                  <ListBulletIcon className='w-8 h-8'/>
                 </div>
                 <div>
                   <div className='app__menu_item_label'>Supply and Material Management</div>
@@ -76,7 +76,7 @@ const MainMenu: React.FC = () => {
             <Link href='/employees'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
-                  <UsersIcon className='w-8 h-8'/>
+                  <DocumentDuplicateIcon className='w-8 h-8'/>
                 </div>
                 <div>
                   <div className='app__menu_item_label'>Purchase Orders</div>
@@ -87,7 +87,7 @@ const MainMenu: React.FC = () => {
             <Link href='/employees'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
-                  <UsersIcon className='w-8 h-8'/>
+                  <FolderIcon className='w-8 h-8'/>
                 </div>
                 <div>
                   <div className='app__menu_item_label'>Projects</div>
@@ -98,11 +98,11 @@ const MainMenu: React.FC = () => {
             <div className='pt-4'>
               <hr/>
             </div>
-            <div className='text-gray-700 text-lg font-semibold'>System</div>
+            <div className='text-gray-700 text-lg font-semibold'>System <span className='text-xs text-gray-500'>(Super Admin)</span></div>
             <Link href='/settings/system'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
-                  <UsersIcon className='w-8 h-8'/>
+                  <Cog6ToothIcon className='w-8 h-8'/>
                 </div>
                 <div>
                   <div className='app__menu_item_label'>System Settings</div>
