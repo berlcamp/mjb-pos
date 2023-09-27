@@ -33,7 +33,7 @@ const Notifications = ({ darkMode }: propTypes) => {
 
   const fetchData = async () => {
     const { data, error } = await supabase
-      .from('hrm_notifications')
+      .from('rdt_notifications')
       .select()
       .eq('user_id', userId)
       // .order('is_read', { ascending: true })
@@ -56,7 +56,7 @@ const Notifications = ({ darkMode }: propTypes) => {
     }
 
     let query = supabase
-      .from('hrm_notifications')
+      .from('rdt_notifications')
       .select()
       .eq('user_id', userId)
 
@@ -87,7 +87,7 @@ const Notifications = ({ darkMode }: propTypes) => {
 
   const countUnread = async () => {
     const { count: unreadCount } = await supabase
-      .from('hrm_notifications')
+      .from('rdt_notifications')
       .select('*', { count: 'exact' })
       .eq('is_read', false)
       .eq('user_id', userId)
@@ -99,7 +99,7 @@ const Notifications = ({ darkMode }: propTypes) => {
   const handleClick = async (notification: NotificationTypes) => {
     // mark as read code here..
     await supabase
-      .from('hrm_notifications')
+      .from('rdt_notifications')
       .update({
         is_read: true
       })
@@ -113,7 +113,7 @@ const Notifications = ({ darkMode }: propTypes) => {
   useEffect(() => {
     const countTotal = async () => {
       const { count: notiTotal } = await supabase
-        .from('hrm_notifications')
+        .from('rdt_notifications')
         .select('id', { count: 'exact' })
         .eq('user_id', userId)
 
@@ -142,7 +142,7 @@ const Notifications = ({ darkMode }: propTypes) => {
       .channel('realtime notifications')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'hrm_notifications', filter: `user_id=eq.${userId}` },
+        { event: '*', schema: 'public', table: 'rdt_notifications', filter: `user_id=eq.${userId}` },
         () => {
           void fetchData()
         })
