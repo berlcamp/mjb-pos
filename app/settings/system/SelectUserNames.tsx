@@ -25,14 +25,14 @@ export default function SelectUserNames ({ settingsData, multiple, type, handleM
     const searchSplit = (e.target.value).split(' ')
 
     let query = supabase
-      .from('hrm_users')
-      .select('id, firstname, lastname, middlename')
+      .from('rdt_users')
+      .select('id, name')
       .eq('status', 'Active')
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     searchSplit.forEach(item => {
-      query = query.or(`firstname.ilike.%${item}%,middlename.ilike.%${item}%,lastname.ilike.%${item}%`)
+      query = query.or(`name.ilike.%${item}%`)
     })
 
     // Excluded already selected items
