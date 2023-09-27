@@ -42,7 +42,7 @@ const TopMenu = ({ darkMode }: propTypes) => {
             </span>
         </div>
 
-        <div className={`${showDropdown ? '' : 'hidden'} absolute right-0 z-30 mt-2 origin-top-right rounded-md bg-gray-100 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}>
+        <div className={`${showDropdown ? '' : 'hidden'} absolute -right-8 md:right-0 z-30 mt-2 origin-top-right rounded-md bg-gray-100 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`}>
           <MainMenu/>
         </div>
 

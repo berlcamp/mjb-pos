@@ -217,7 +217,11 @@ const Page: React.FC = () => {
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td">
-                            <span className='font-light'>Status: {item.status} </span>
+                            {
+                              item.status === 'Inactive'
+                                ? <span className='app__status_container_red'>Expired</span>
+                                : <span className='app__status_container_green'>Active</span>
+                            }
                           </div>
                         </div>
                         <div>
