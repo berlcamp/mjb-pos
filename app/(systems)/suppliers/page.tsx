@@ -1,16 +1,16 @@
 'use client'
 
-import { fetchEmployees } from '@/utils/fetchApi'
+import { fetchSuppliers } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, EmployeesSideBar, Title, Unauthorized, CustomButton, DeleteModal } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, InventorySideBar, UserBlock, ConfirmModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { Employee } from '@/types'
+import type { SupplierTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,13 +21,13 @@ import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [approving, setApproving] = useState(false)
-  const [list, setList] = useState<Employee[]>([])
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [list, setList] = useState<SupplierTypes[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
+  const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
-  const [editData, setEditData] = useState<Employee | null>(null)
+  const [editData, setEditData] = useState<SupplierTypes | null>(null)
 
   const [filterKeyword, setFilterKeyword] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
@@ -39,14 +39,14 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session } = useSupabase()
+  const { session, supabase } = useSupabase()
   const { hasAccess, setToast } = useFilter()
 
   const fetchData = async () => {
     setLoading(true)
 
     try {
-      const result = await fetchEmployees({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchSuppliers({ filterKeyword, filterStatus }, perPageCount, 0)
 
       // update the list in redux
       dispatch(updateList(result.data))
@@ -65,7 +65,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchEmployees({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchSuppliers({ filterKeyword, filterStatus }, perPageCount, list.length)
 
       // update the list in redux
       const newList = [...list, ...result.data]
@@ -85,22 +85,62 @@ const Page: React.FC = () => {
     setEditData(null)
   }
 
-  const handleEdit = (item: Employee) => {
+  const handleEdit = (item: SupplierTypes) => {
     setShowAddModal(true)
     setEditData(item)
   }
 
-  const handleChangeStatus = async (item: Employee, status: string) => {
-    try {
-      // const { error } = await supabase
-      //   .from('rdt_users')
-      //   .update({ status })
-      //   .eq('id', item.id)
+  const handleInactive = (id: string) => {
+    setSelectedId(id)
+    setShowConfirmInactiveModal(true)
+  }
 
-      // if (error) throw new Error(error.message)
+  const handleActive = (id: string) => {
+    setSelectedId(id)
+    setShowConfirmActiveModal(true)
+  }
+
+  const handleInactiveConfirmed = async () => {
+    try {
+      const { error } = await supabase
+        .from('rdt_suppliers')
+        .update({ status: 'Inactive' })
+        .eq('id', selectedId)
+
+      if (error) throw new Error(error.message)
+
+      // Update data in redux
+      const items = [...globallist]
+      const foundIndex = items.findIndex(x => x.id === selectedId)
+      items[foundIndex] = { ...items[foundIndex], status: 'Inactive' }
+      dispatch(updateList(items))
 
       // pop up the success message
       setToast('success', 'Successfully saved.')
+      setShowConfirmInactiveModal(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleActiveConfirmed = async () => {
+    try {
+      const { error } = await supabase
+        .from('rdt_suppliers')
+        .update({ status: 'Active' })
+        .eq('id', selectedId)
+
+      if (error) throw new Error(error.message)
+
+      // Update data in redux
+      const items = [...globallist]
+      const foundIndex = items.findIndex(x => x.id === selectedId)
+      items[foundIndex] = { ...items[foundIndex], status: 'Active' }
+      dispatch(updateList(items))
+
+      // pop up the success message
+      setToast('success', 'Successfully saved.')
+      setShowConfirmActiveModal(false)
     } catch (e) {
       console.error(e)
     }
@@ -122,21 +162,21 @@ const Page: React.FC = () => {
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('employee_accounts') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('inventory') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
 
   return (
     <>
     <Sidebar>
-      <EmployeesSideBar/>
+      <InventorySideBar/>
     </Sidebar>
     <TopBar/>
     <div className="app__main">
       <div>
           <div className='app__title'>
-            <Title title='Employees'/>
+            <Title title='Suppliers'/>
             <CustomButton
               containerStyles='app__btn_green'
-              title='Add New Account'
+              title='Add New Supplier'
               btnType='button'
               handleClick={handleAdd}
             />
@@ -163,17 +203,23 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Name
+                          Supplier Name
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Description
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Status
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Added By
                       </th>
                       <th></th>
                   </tr>
               </thead>
               <tbody>
                 {
-                  !isDataEmpty && list.map((item: Employee) => (
+                  !isDataEmpty && list.map((item: SupplierTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
@@ -206,6 +252,28 @@ const Page: React.FC = () => {
                                       <span>Edit</span>
                                     </div>
                                 </Menu.Item>
+                                <Menu.Item>
+                                  <div className='app__dropdown_item2'>
+                                  {
+                                    item.status === 'Active' &&
+                                        <CustomButton
+                                          containerStyles='app__btn_red_xs'
+                                          title='Mark as Inactive'
+                                          btnType='button'
+                                          handleClick={() => handleInactive(item.id)}
+                                        />
+                                  }
+                                  {
+                                    item.status === 'Inactive' &&
+                                        <CustomButton
+                                          containerStyles='app__btn_green_xs'
+                                          title='Mark as Active'
+                                          btnType='button'
+                                          handleClick={() => handleActive(item.id)}
+                                        />
+                                  }
+                                  </div>
+                                </Menu.Item>
                               </div>
                             </Menu.Items>
                           </Transition>
@@ -213,41 +281,18 @@ const Page: React.FC = () => {
                       </td>
                       <th
                         className="app__th_firstcol">
-                        {item.firstname} {item.middlename} {item.lastname}
+                        {item.name}
                         {/* Mobile View */}
                         <div>
-                          <div className="md:hidden app__td">
+                          <div className="md:hidden app__td_mobile">
+                            <div>
                             {
                               item.status === 'Inactive'
-                                ? <span className='app__status_container_red'>Expired</span>
+                                ? <span className='app__status_container_red'>Inactive</span>
                                 : <span className='app__status_container_green'>Active</span>
                             }
-                          </div>
-                        </div>
-                        <div>
-                          <div className="md:hidden app__td">
-                          {
-                              item.status === 'Active' &&
-                                <div className='flex items-center justify-start space-x-2'>
-                                  <CustomButton
-                                    containerStyles='app__btn_red'
-                                    title='Mark as Inactive'
-                                    btnType='button'
-                                    handleClick={async () => await handleChangeStatus(item, 'Inactive')}
-                                  />
-                                </div>
-                            }
-                            {
-                              item.status === 'Inactive' &&
-                                <div className='flex items-center justify-start space-x-2'>
-                                  <CustomButton
-                                    containerStyles='app__btn_green'
-                                    title='Mark as Active'
-                                    btnType='button'
-                                    handleClick={async () => await handleChangeStatus(item, 'Active')}
-                                  />
-                                </div>
-                            }
+                            </div>
+                            <div><span className='app_td_mobile_label'>Description:</span> {item.description}</div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -255,36 +300,19 @@ const Page: React.FC = () => {
                       </th>
                       <td
                         className="hidden md:table-cell app__td">
+                        {item.description}
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
                         {
                           item.status === 'Inactive'
-                            ? <span className='app__status_container_red'>Expired</span>
+                            ? <span className='app__status_container_red'>Inactive</span>
                             : <span className='app__status_container_green'>Active</span>
                         }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
-                          {
-                            item.status === 'Active' &&
-                              <div className='flex items-center justify-start space-x-2'>
-                                <CustomButton
-                                  containerStyles='app__btn_red'
-                                  title='Mark as Inactive'
-                                  btnType='button'
-                                  handleClick={async () => await handleChangeStatus(item, 'Inactive')}
-                                />
-                              </div>
-                          }
-                          {
-                            item.status === 'Inactive' &&
-                              <div className='flex items-center justify-start space-x-2'>
-                                <CustomButton
-                                  containerStyles='app__btn_green'
-                                  title='Mark as Active'
-                                  btnType='button'
-                                  handleClick={async () => await handleChangeStatus(item, 'Active')}
-                                />
-                              </div>
-                          }
+                        <UserBlock user={item.rdt_users}/>
                       </td>
                     </tr>
                   ))
@@ -312,6 +340,30 @@ const Page: React.FC = () => {
         <AddEditModal
           editData={editData}
           hideModal={() => setShowAddModal(false)}/>
+      )
+    }
+    {/* Confirm (Inactive) Modal */}
+    {
+      showConfirmInactiveModal && (
+        <ConfirmModal
+          header='Confirmation'
+          btnText='Confirm'
+          message="Please confirm this action"
+          onConfirm={handleInactiveConfirmed}
+          onCancel={() => setShowConfirmInactiveModal(false)}
+        />
+      )
+    }
+    {/* Confirm (Active) Modal */}
+    {
+      showConfirmActiveModal && (
+        <ConfirmModal
+          header='Confirmation'
+          btnText='Confirm'
+          message="Please confirm this action"
+          onConfirm={handleActiveConfirmed}
+          onCancel={() => setShowConfirmActiveModal(false)}
+        />
       )
     }
   </>

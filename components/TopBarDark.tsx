@@ -1,7 +1,6 @@
 import TopMenu from '@/components/TopBars/TopMenu'
 import Notifications from '@/components/TopBars/Notifications'
 import UserDropdown from '@/components/TopBars/UserDropdown'
-import LoginDropDown from '@/components/TopBars/LoginDropDown'
 
 export default function TopBarDark ({ isGuest }: { isGuest?: boolean }) {
   return (

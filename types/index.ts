@@ -64,6 +64,8 @@ export interface Employee {
   lastname: string
   address: string
   contact_number: string
+  created_by: string
+  rdt_users: AccountTypes
   org_id: string
 }
 
@@ -75,9 +77,53 @@ export interface AccountTypes {
   avatar_url: string
   email: string
   org_id: string
+  created_by: string
+  rdt_users: AccountTypes
   temp_password: string
 }
 
 export interface excludedItemsTypes {
   id: string
+}
+
+export interface ProjectTypes {
+  id: string
+  name: string
+  description: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
+}
+
+export interface LocationTypes {
+  id: string
+  name: string
+  description: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
+  project_id: string
+  rdt_projects: ProjectTypes
+}
+
+export interface SupplierTypes {
+  id: string
+  name: string
+  description: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
+}
+
+export interface CanvassTypes {
+  id: string
+  name: string
+  description: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
 }

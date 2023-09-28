@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
-import axios from 'axios'
 
 // Types
-import type { AccountTypes } from '@/types'
+import type { AccountTypes, Employee } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -15,12 +14,12 @@ import { useSupabase } from '@/context/SupabaseProvider'
 
 interface ModalProps {
   hideModal: () => void
-  editData: AccountTypes | null
+  editData: Employee | null
 }
 
 const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const { setToast } = useFilter()
-  const { supabase } = useSupabase()
+  const { supabase, session, systemUsers } = useSupabase()
   const [saving, setSaving] = useState(false)
 
   // Redux staff
@@ -28,11 +27,11 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { register, formState: { errors }, reset, handleSubmit } = useForm<AccountTypes>({
+  const { register, formState: { errors }, reset, handleSubmit } = useForm<Employee>({
     mode: 'onSubmit'
   })
 
-  const onSubmit = async (formdata: AccountTypes) => {
+  const onSubmit = async (formdata: Employee) => {
     if (saving) return
 
     setSaving(true)
@@ -44,62 +43,59 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     }
   }
 
-  const handleCreate = async (formdata: AccountTypes) => {
+  const handleCreate = async (formdata: Employee) => {
     try {
       const newData = {
-        name: formdata.name,
+        lastname: formdata.lastname,
+        firstname: formdata.firstname,
+        middlename: formdata.middlename,
         status: 'Active',
-        email: formdata.email,
-        temp_password: tempPassword.toString(),
+        created_by: session.user.id,
         org_id: process.env.NEXT_PUBLIC_ORG_ID
       }
 
-      // Sign up the user on the server side to fix pkce issue https://github.com/supabase/auth-helpers/issues/569
-      axios.post('/api/signup', {
-        item: newData
-      }).then(async function (response) {
-        const { data, error: error2 } = await supabase
-          .from('rdt_users')
-          .insert({ ...newData, id: response.data.insert_id })
-          .select()
+      const { data, error: error2 } = await supabase
+        .from('rdt_employees')
+        .insert(newData)
+        .select()
 
-        if (error2) throw new Error(error2.message)
+      if (error2) throw new Error(error2.message)
 
-        // Append new data in redux
-        const updatedData = { ...newData, id: response.data.insert_id }
-        dispatch(updateList([updatedData, ...globallist]))
+      // Append new data in redux
+      const user: AccountTypes = systemUsers.find((user: AccountTypes) => user.id === session.user.id)
+      const updatedData = { ...newData, id: data[0].id, rdt_users: { name: user.name, avatar_url: user.avatar_url } }
+      dispatch(updateList([updatedData, ...globallist]))
 
-        // pop up the success message
-        setToast('success', 'Successfully saved.')
+      // pop up the success message
+      setToast('success', 'Successfully saved.')
 
-        // Updating showing text in redux
-        dispatch(updateResultCounter({ showing: Number(resultsCounter.showing) + 1, results: Number(resultsCounter.results) + 1 }))
+      // Updating showing text in redux
+      dispatch(updateResultCounter({ showing: Number(resultsCounter.showing) + 1, results: Number(resultsCounter.results) + 1 }))
 
-        setSaving(false)
+      setSaving(false)
 
-        // hide the modal
-        hideModal()
+      // hide the modal
+      hideModal()
 
-        // reset all form fields
-        reset()
-      }).catch(function (error) {
-        console.error(error)
-      })
+      // reset all form fields
+      reset()
     } catch (e) {
       console.error(e)
     }
   }
 
-  const handleUpdate = async (formdata: AccountTypes) => {
+  const handleUpdate = async (formdata: Employee) => {
     if (!editData) return
 
     const newData = {
-      name: formdata.name
+      lastname: formdata.lastname,
+      firstname: formdata.firstname,
+      middlename: formdata.middlename
     }
 
     try {
       const { error } = await supabase
-        .from('rdt_users')
+        .from('rdt_employees')
         .update(newData)
         .eq('id', editData.id)
 
@@ -130,11 +126,11 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   // manually set the defaultValues of use-form-hook whenever the component receives new props.
   useEffect(() => {
     reset({
-      name: editData ? editData.name : ''
+      lastname: editData ? editData.lastname : '',
+      firstname: editData ? editData.firstname : '',
+      middlename: editData ? editData.middlename : ''
     })
   }, [editData, reset])
-
-  const tempPassword = Math.floor(Math.random() * 8999) + 1000
 
   return (
   <>
@@ -143,7 +139,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         <div className="app__modal_wrapper3">
           <div className="app__modal_header">
             <h5 className="app__modal_header_text">
-              Account Details
+              Employee Details
             </h5>
             <button disabled={saving} onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
           </div>
@@ -152,40 +148,41 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
             {
               !saving
                 ? <>
-                  <div className='app__form_field_container'>
-                    <div className='w-full'>
-                      <div className='app__label_standard'>Name</div>
-                      <div>
-                        <input
-                          {...register('name', { required: true })}
-                          type='text'
-                          className='app__select_standard'/>
-                        {errors.name && <div className='app__error_message'>Name is required</div>}
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Firstname</div>
+                        <div>
+                          <input
+                            {...register('firstname', { required: true })}
+                            type='text'
+                            className='app__select_standard'/>
+                          {errors.firstname && <div className='app__error_message'>Firstname is required</div>}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {
-                    !editData &&
-                    <>
-                      <div className='app__form_field_container'>
-                        <div className='w-full'>
-                          <div className='app__label_standard'>Email</div>
-                          <div>
-                            <input
-                              {...register('email', { required: true })}
-                              type='email'
-                              className='app__select_standard'/>
-                            {errors.email && <div className='app__error_message'>Email is required</div>}
-                          </div>
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Middlename</div>
+                        <div>
+                          <input
+                            {...register('middlename')}
+                            type='text'
+                            className='app__select_standard'/>
                         </div>
                       </div>
-                      <div className='app__form_field_container'>
-                        <div className='w-full'>
-                          <div className='app__label_standard'>Temporary Password: <span className='font-bold'>{tempPassword}</span></div>
+                    </div>
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Lastname</div>
+                        <div>
+                          <input
+                            {...register('lastname', { required: true })}
+                            type='text'
+                            className='app__select_standard'/>
+                          {errors.lastname && <div className='app__error_message'>Lastname is required</div>}
                         </div>
                       </div>
-                    </>
-                  }
+                    </div>
                   </>
                 : <OneColLayoutLoading rows={3}/>
             }

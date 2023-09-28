@@ -4,8 +4,6 @@ import { useForm } from 'react-hook-form'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 import OneColLayoutLoading from './Loading/OneColLayoutLoading'
-import { superAdmins } from '@/constants'
-import uuid from 'react-uuid'
 import Avatar from 'react-avatar'
 import Image from 'next/image'
 
@@ -28,7 +26,7 @@ interface FormTypes {
 }
 
 const AccountDetails = ({ hideModal, shouldUpdateRedux, id }: ModalProps) => {
-  const { setToast, hasAccess } = useFilter()
+  const { setToast } = useFilter()
   const { supabase, session } = useSupabase()
 
   const [loading, setLoading] = useState(false)
@@ -39,9 +37,6 @@ const AccountDetails = ({ hideModal, shouldUpdateRedux, id }: ModalProps) => {
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
   const dispatch = useDispatch()
-
-  // Check access from employee_accounts settings or Super Admins
-  const isAdmin = hasAccess('employee_accounts') || superAdmins.includes(session.user.email)
 
   const { register, formState: { errors }, reset, handleSubmit } = useForm<FormTypes>({
     mode: 'onSubmit'

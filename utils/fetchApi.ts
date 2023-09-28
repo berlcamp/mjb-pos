@@ -1,8 +1,6 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { fullTextQuery } from '@/utils/text-helper'
-import { format } from 'date-fns'
 
-import type { AccountTypes, Employee, excludedItemsTypes } from '@/types'
+import type { AccountTypes, CanvassTypes, Employee, LocationTypes, ProjectTypes, SupplierTypes, excludedItemsTypes } from '@/types'
 
 const supabase = createClientComponentClient()
 
@@ -10,7 +8,7 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
   try {
     let query = supabase
       .from('rdt_employees')
-      .select('*', { count: 'exact' })
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
@@ -87,7 +85,175 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
 
     return { data, count }
   } catch (error) {
-    console.error('fetch employee error', error)
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchProjects (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_projects')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: ProjectTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchLocations (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_project_locations')
+      .select('*, rdt_users(name,avatar_url), rdt_projects(name)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: LocationTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchSuppliers (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_suppliers')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: SupplierTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchCanvass (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_canvasses')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: CanvassTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
     return { data: [], count: 0 }
   }
 }

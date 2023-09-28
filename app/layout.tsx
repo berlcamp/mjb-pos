@@ -12,8 +12,8 @@ import type { Metadata } from 'next'
 import type { AccountTypes, settingsDataTypes } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'RDT SYSTEMS',
-  description: 'RDT SYSTEMS by BTC'
+  title: 'RDT DATA MANAGER',
+  description: 'RDT DATA MANAGER by BTC'
 }
 
 // do not cache this layout

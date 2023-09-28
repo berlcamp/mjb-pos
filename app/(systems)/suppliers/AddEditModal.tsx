@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
-import axios from 'axios'
 
 // Types
-import type { Employee } from '@/types'
+import type { AccountTypes, SupplierTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -15,12 +14,12 @@ import { useSupabase } from '@/context/SupabaseProvider'
 
 interface ModalProps {
   hideModal: () => void
-  editData: Employee | null
+  editData: SupplierTypes | null
 }
 
 const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const { setToast } = useFilter()
-  const { supabase } = useSupabase()
+  const { supabase, session, systemUsers } = useSupabase()
   const [saving, setSaving] = useState(false)
 
   // Redux staff
@@ -28,11 +27,11 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { register, formState: { errors }, reset, handleSubmit } = useForm<Employee>({
+  const { register, formState: { errors }, reset, handleSubmit } = useForm<SupplierTypes>({
     mode: 'onSubmit'
   })
 
-  const onSubmit = async (formdata: Employee) => {
+  const onSubmit = async (formdata: SupplierTypes) => {
     if (saving) return
 
     setSaving(true)
@@ -44,25 +43,26 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     }
   }
 
-  const handleCreate = async (formdata: Employee) => {
+  const handleCreate = async (formdata: SupplierTypes) => {
     try {
       const newData = {
-        lastname: formdata.lastname,
-        firstname: formdata.firstname,
-        middlename: formdata.middlename,
+        name: formdata.name,
+        description: formdata.description,
+        created_by: session.user.id,
         status: 'Active',
         org_id: process.env.NEXT_PUBLIC_ORG_ID
       }
 
       const { data, error: error2 } = await supabase
-        .from('rdt_employees')
+        .from('rdt_suppliers')
         .insert(newData)
         .select()
 
-        if (error2) throw new Error(error2.message)
+      if (error2) throw new Error(error2.message)
 
       // Append new data in redux
-      const updatedData = { ...newData, id: data[0].id }
+      const user: AccountTypes = systemUsers.find((user: AccountTypes) => user.id === session.user.id)
+      const updatedData = { ...newData, id: data[0].id, rdt_users: { name: user.name, avatar_url: user.avatar_url } }
       dispatch(updateList([updatedData, ...globallist]))
 
       // pop up the success message
@@ -83,18 +83,17 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     }
   }
 
-  const handleUpdate = async (formdata: Employee) => {
+  const handleUpdate = async (formdata: SupplierTypes) => {
     if (!editData) return
 
     const newData = {
-      lastname: formdata.lastname,
-      firstname: formdata.firstname,
-      middlename: formdata.middlename
+      name: formdata.name,
+      description: formdata.description
     }
 
     try {
       const { error } = await supabase
-        .from('rdt_employees')
+        .from('rdt_suppliers')
         .update(newData)
         .eq('id', editData.id)
 
@@ -125,9 +124,8 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   // manually set the defaultValues of use-form-hook whenever the component receives new props.
   useEffect(() => {
     reset({
-      lastname: editData ? editData.lastname : '',
-      firstname: editData ? editData.firstname : '',
-      middlename: editData ? editData.middlename : ''
+      name: editData ? editData.name : '',
+      description: editData ? editData.description : ''
     })
   }, [editData, reset])
 
@@ -138,7 +136,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         <div className="app__modal_wrapper3">
           <div className="app__modal_header">
             <h5 className="app__modal_header_text">
-              Employee Details
+              Supplier Details
             </h5>
             <button disabled={saving} onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
           </div>
@@ -149,36 +147,25 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                 ? <>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Firstname</div>
+                        <div className='app__label_standard'>Supplier Name</div>
                         <div>
                           <input
-                            {...register('firstname', { required: true })}
+                            {...register('name', { required: true })}
                             type='text'
                             className='app__select_standard'/>
-                          {errors.firstname && <div className='app__error_message'>Firstname is required</div>}
+                          {errors.name && <div className='app__error_message'>Supplier Name is required</div>}
                         </div>
                       </div>
                     </div>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Middlename</div>
+                        <div className='app__label_standard'>Description</div>
                         <div>
                           <input
-                            {...register('middlename')}
+                            {...register('description', { required: true })}
                             type='text'
                             className='app__select_standard'/>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='app__form_field_container'>
-                      <div className='w-full'>
-                        <div className='app__label_standard'>Lastname</div>
-                        <div>
-                          <input
-                            {...register('lastname', { required: true })}
-                            type='text'
-                            className='app__select_standard'/>
-                          {errors.lastname && <div className='app__error_message'>Lastname is required</div>}
+                          {errors.description && <div className='app__error_message'>Description is required</div>}
                         </div>
                       </div>
                     </div>

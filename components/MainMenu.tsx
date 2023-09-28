@@ -62,7 +62,7 @@ const MainMenu: React.FC = () => {
                 </div>
               </div>
             </Link>
-            <Link href='/employees'>
+            <Link href='/suppliers'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
                   <ListBulletIcon className='w-8 h-8'/>
@@ -84,7 +84,7 @@ const MainMenu: React.FC = () => {
                 </div>
               </div>
             </Link>
-            <Link href='/employees'>
+            <Link href='/projects'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
                   <FolderIcon className='w-8 h-8'/>

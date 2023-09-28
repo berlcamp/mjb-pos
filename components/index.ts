@@ -15,9 +15,9 @@ import TopBarDark from './TopBarDark'
 import UserBlock from './UserBlock'
 import AccountDetails from './AccountDetails'
 import SettingsSideBar from './Sidebars/SettingsSideBar'
-import RecordsSideBar from './Sidebars/RecordsSideBar'
-import RequestsSideBar from './Sidebars/RequestsSideBar'
 import EmployeesSideBar from './Sidebars/EmployeesSideBar'
+import ProjectsSideBar from './Sidebars/ProjectsSideBar'
+import InventorySideBar from './Sidebars/InventorySideBar'
 import OneColLayoutLoading from './Loading/OneColLayoutLoading'
 import ThreeColTableLoading from './Loading/ThreeColTableLoading'
 import TableRowLoading from './Loading/TableRowLoading'
@@ -31,9 +31,9 @@ export {
   TopBar,
   UserBlock,
   SettingsSideBar,
-  RecordsSideBar,
-  RequestsSideBar,
+  ProjectsSideBar,
   EmployeesSideBar,
+  InventorySideBar,
   CustomButton,
   OneColLayoutLoading,
   ThreeColTableLoading,

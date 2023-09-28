@@ -22,12 +22,6 @@ function Sidebar ({ children }: { children: React.ReactNode }) {
             <ul className="space-y-2">
               <li>
                   <div className='flex justify-end'>
-                    {/* <Link
-                      href="/"
-                      className="flex flex-1 items-center p-2 text-base font-normal rounded-lg text-gray-300 hover:bg-gray-700 cursor-pointer">
-                      <HomeIcon className='w-6 h-6'/>
-                      <span className="text-sm font-medium ml-3">Main Menu</span>
-                    </Link> */}
                     <XMarkIcon
                       className="lg:hidden mr-2 w-6 h-6 cursor-pointer text-white bg-gray-700 hover:bg-gray-600"
                       onClick={ () => setViewSidebar(!viewSidebar)}
