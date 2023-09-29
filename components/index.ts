@@ -11,6 +11,7 @@ import PerPage from './PerPage'
 import LandingPage from './LandingPage'
 import ShowMore from './ShowMore'
 import MainMenu from './MainMenu'
+import BackButton from './BackButton'
 import TopBarDark from './TopBarDark'
 import UserBlock from './UserBlock'
 import AccountDetails from './AccountDetails'
@@ -30,6 +31,7 @@ export {
   Title,
   TopBar,
   UserBlock,
+  BackButton,
   SettingsSideBar,
   ProjectsSideBar,
   EmployeesSideBar,

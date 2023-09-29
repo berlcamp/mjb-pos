@@ -127,3 +127,10 @@ export interface CanvassTypes {
   status: string
   org_id: string
 }
+
+export interface CanvassItemTypes {
+  id: string
+  name: string
+  canvas_id: string
+  prices: string
+}

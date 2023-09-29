@@ -18,6 +18,7 @@ import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
 import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import Link from 'next/link'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -206,6 +207,8 @@ const Page: React.FC = () => {
                           Price Canvass Name
                       </th>
                       <th className="hidden md:table-cell app__th">
+                      </th>
+                      <th className="hidden md:table-cell app__th">
                           Description
                       </th>
                       <th className="hidden md:table-cell app__th">
@@ -298,6 +301,10 @@ const Page: React.FC = () => {
                         {/* End - Mobile View */}
 
                       </th>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        <Link href={`/canvass/${item.id}`} className='app__btn_green_xs'>View Items & Prices</Link>
+                      </td>
                       <td
                         className="hidden md:table-cell app__td">
                         {item.description}

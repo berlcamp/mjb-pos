@@ -1,5 +1,5 @@
 'use client'
-import { ChartBarSquareIcon, Cog6ToothIcon, CreditCardIcon, DocumentDuplicateIcon, FolderIcon, HomeIcon, ListBulletIcon, PencilSquareIcon, TableCellsIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { Cog6ToothIcon, DocumentDuplicateIcon, FolderIcon, HomeIcon, ListBulletIcon, UsersIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 const MainMenu: React.FC = () => {
@@ -8,25 +8,6 @@ const MainMenu: React.FC = () => {
       <div className='px-6 mt-2 text-gray-700 text-xl font-semibold'>Menu</div>
       <div className='px-4 py-2 overflow-y-auto h-[calc(100vh-170px)]'>
         <div className='lg:flex lg:space-x-2 lg:space-y-0 space-y-2 justify-center lg:flex-row-reverse'>
-          <div className='px-2 py-4 border text-gray-600 rounded-lg bg-white shadow-md flex flex-col lg:mx-2 space-y-1'>
-            <div className='text-gray-700 text-lg font-semibold'>Shortcuts</div>
-            <Link href='/' className='app__menu_item'>
-              <PencilSquareIcon className='w-6 h-6'/>
-              <div className='app__menu_item_label'>Create Purchase Request</div>
-            </Link>
-            <Link href='/' className='app__menu_item'>
-              <CreditCardIcon className='w-6 h-6'/>
-              <div className='app__menu_item_label'>Create New Payroll</div>
-            </Link>
-            <Link href='/' className='app__menu_item'>
-              <TableCellsIcon className='w-6 h-6'/>
-              <div className='app__menu_item_label'>Create New Canvass</div>
-            </Link>
-            <Link href='/' className='app__menu_item'>
-              <ChartBarSquareIcon className='w-6 h-6'/>
-              <div className='app__menu_item_label'>Reports</div>
-            </Link>
-          </div>
           <div className='px-2 py-4 lg:w-96 border text-gray-600 rounded-lg bg-white shadow-md flex flex-col space-y-2'>
             {/* <div className='text-gray-700 text-lg font-semibold'>RDM</div> */}
             <Link href='/'>
@@ -62,7 +43,7 @@ const MainMenu: React.FC = () => {
                 </div>
               </div>
             </Link>
-            <Link href='/suppliers'>
+            <Link href='/canvass'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
                   <ListBulletIcon className='w-8 h-8'/>

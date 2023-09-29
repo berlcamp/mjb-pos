@@ -68,7 +68,7 @@ const UserDropdown = ({ darkMode }: propTypes) => {
                     <UserIcon className='w-5 h-5'/>
                     <div className='text-sm font-semibold text-gray-700'>Account Settings</div>
                   </div>
-                  <div className='py-4'>
+                  <div className='py-px'>
                     <hr/>
                   </div>
                   <div

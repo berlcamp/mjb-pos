@@ -17,7 +17,7 @@ const InventorySideBar = () => {
         </li>
         <li>
             <Link href="/canvass" className={`app__menu_link ${currentRoute === '/canvass' ? 'app_menu_link_active' : ''}`}>
-              <span className="flex-1 ml-3 whitespace-nowrap">Price Canvassing</span>
+              <span className="flex-1 ml-3 whitespace-nowrap">Price Canvass</span>
             </Link>
         </li>
         <li>
