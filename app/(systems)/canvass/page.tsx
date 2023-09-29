@@ -296,6 +296,7 @@ const Page: React.FC = () => {
                             }
                             </div>
                             <div><span className='app_td_mobile_label'>Description:</span> {item.description}</div>
+                            <div><Link href={`/canvass/${item.id}`} className='app__btn_green_xs'>View Items & Prices</Link></div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
