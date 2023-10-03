@@ -9,7 +9,7 @@ const ShowMore = ({ handleShowMore }: PropTypes) => {
   return (
     <div className='flex items-center mt-2 justify-center'>
       <CustomButton
-            containerStyles='app__btn_green'
+            containerStyles='app__btn_gray'
             title='Show More...'
             btnType='button'
             handleClick={handleShowMore}

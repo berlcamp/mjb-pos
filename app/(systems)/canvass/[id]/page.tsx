@@ -1,31 +1,34 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { Sidebar, TopBar, Title, Unauthorized, CustomButton, InventorySideBar, ConfirmModal, BackButton } from '@/components'
+import { Sidebar, TopBar, Title, Unauthorized, CustomButton, InventorySideBar, BackButton, Remarks, ConfirmModal } from '@/components'
 import { superAdmins } from '@/constants'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 import AddEditModal from './AddEditModal'
-
-// Types
-import type { CanvassItemTypes } from '@/types'
-
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
+
+// Types
+import type { CanvassTypes, CanvassItemTypes } from '@/types'
+
 import TwoColTableLoading from '@/components/Loading/TwoColTableLoading'
+import DynamicTable from './DynamicTable'
 
 export default function Page ({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(false)
   const [list, setList] = useState<CanvassItemTypes[]>([])
-  const [canvassName, setCanvassName] = useState('')
+  const [canvass, setCanvas] = useState<CanvassTypes | null>(null)
+  const [suppliers, setSuppliers] = useState([])
+  const [status, setStatus] = useState('')
 
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showConfirmRemoveModal, setShowConfirmRemoveModal] = useState(false)
-  // const [selectedId, setSelectedId] = useState<string>('')
+  const [showConfirmApproveModal, setShowConfirmApproveModal] = useState(false)
+  const [showConfirmUnapproveModal, setShowConfirmUnapproveModal] = useState(false)
   const [editData, setEditData] = useState<CanvassItemTypes | null>(null)
 
   const { session, supabase } = useSupabase()
-  const { hasAccess } = useFilter()
+  const { hasAccess, setToast } = useFilter()
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
@@ -37,23 +40,29 @@ export default function Page ({ params }: { params: { id: string } }) {
     try {
       const { data, error } = await supabase
         .from('rdt_canvass_items')
-        .select()
+        .select('*, rdt_products(id, name)')
         .eq('canvas_id', params.id)
+        .order('id', { ascending: false })
 
       if (error) throw new Error(error.message)
 
       const { data: canvass, error: error2 } = await supabase
         .from('rdt_canvasses')
-        .select('name')
+        .select()
         .eq('id', params.id)
         .single()
 
       if (error2) throw new Error(error2.message)
 
-      console.log('canvass', canvass)
-      setCanvassName(canvass.name)
+      const { data: suppliers, error: error3 } = await supabase
+        .from('rdt_suppliers')
+        .select()
 
-      // update the list in redux
+      if (error3) throw new Error(error3.message)
+
+      setSuppliers(suppliers)
+      setCanvas(canvass)
+      setStatus(canvass.status)
       dispatch(updateList(data))
     } catch (e) {
       console.error(e)
@@ -67,24 +76,82 @@ export default function Page ({ params }: { params: { id: string } }) {
     setEditData(null)
   }
 
-  // const handleEdit = (item: CanvassItemTypes) => {
-  //   setShowAddModal(true)
-  //   setEditData(item)
-  // }
+  const handleApprove = () => {
+    setShowConfirmApproveModal(true)
+  }
+  const handleUnapprove = () => {
+    setShowConfirmUnapproveModal(true)
+  }
 
-  // const handleRemove = (id: string) => {
-  //   setSelectedId(id)
-  //   setShowConfirmRemoveModal(true)
-  // }
+  const handleApproveConfirmed = async () => {
+    try {
+      const { error } = await supabase
+        .from('rdt_canvasses')
+        .update({
+          status: 'Approved'
+        })
+        .eq('id', params.id)
 
-  const handleRemoveConfirmed = async () => {
-    //
+      if (error) throw new Error(error.message)
+
+      // add to logs
+      const { error: logError } = await supabase
+        .from('rdt_remarks')
+        .insert({
+          reference_id: params.id,
+          type: 'canvass',
+          reply_type: 'system',
+          message: 'Approved this',
+          sender_id: session.user.id
+        })
+      if (logError) throw new Error(logError.message)
+
+      // pop up the success message
+      setToast('success', 'Successfully approved.')
+
+      setShowConfirmApproveModal(false)
+      setStatus('Approved')
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleUnapproveConfirmed = async () => {
+    try {
+      const { error } = await supabase
+        .from('rdt_canvasses')
+        .update({
+          status: 'Pending approval'
+        })
+        .eq('id', params.id)
+
+      if (error) throw new Error(error.message)
+
+      // add to logs
+      const { error: logError } = await supabase
+        .from('rdt_remarks')
+        .insert({
+          reference_id: params.id,
+          type: 'canvass',
+          reply_type: 'system',
+          message: 'Unapproved this',
+          sender_id: session.user.id
+        })
+      if (logError) throw new Error(logError.message)
+
+      // pop up the success message
+      setToast('success', 'Successfully unapproved.')
+
+      setShowConfirmUnapproveModal(false)
+      setStatus('Pending approval')
+    } catch (e) {
+      console.error(e)
+    }
   }
 
   // Update list whenever list in redux updates
   useEffect(() => {
     setList(globallist)
-    console.log('globallist', globallist)
   }, [globallist])
 
   // Featch data
@@ -99,6 +166,9 @@ export default function Page ({ params }: { params: { id: string } }) {
   // Check access from permission settings or Super Admins
   if (!hasAccess('inventory') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
 
+  // is Approver?
+  const isApprover = hasAccess('approve_price_canvass')
+
   return (
     <>
     <Sidebar>
@@ -107,183 +177,104 @@ export default function Page ({ params }: { params: { id: string } }) {
     <TopBar/>
     <div className="app__main">
       <div>
-          <BackButton title='Back to Price Canvasses' url='/canvass'/>
+          <div className='app__title flex'>
+            <BackButton title='Back to Price Canvasses' url='/canvass'/>
+            {
+              (isApprover && status === 'Pending approval') &&
+                <CustomButton
+                  btnType='button'
+                  title='Approve'
+                  handleClick={handleApprove}
+                  containerStyles="app__btn_green"
+                />
+            }
+            {
+              (isApprover && status === 'Approved') &&
+                <CustomButton
+                  btnType='button'
+                  title='Unapproved'
+                  handleClick={handleUnapprove}
+                  containerStyles="app__btn_red"
+                />
+            }
+          </div>
           <div className='app__title'>
-            <Title title='Items & Prices' subTitle={canvassName}/>
-            <CustomButton
-              containerStyles='app__btn_green'
-              title='Add New Item'
-              btnType='button'
-              handleClick={handleAdd}
-            />
+            <Title title={canvass ? 'Canvas #: ' + canvass.canvass_number : ''}/>
+            {
+              status !== 'Approved' &&
+                <CustomButton
+                  containerStyles='app__btn_green'
+                  title='Add Product'
+                  btnType='button'
+                  handleClick={handleAdd}
+                />
+            }
+          </div>
+
+          <div className='flex items-center space-x-1 px-4 pt-4'>
+            <span className='text-sm font-medium text-gray-600'>Description:</span>
+            <span className='text-sm font-bold text-gray-600'>{canvass ? canvass.description : ''}</span>
+          </div>
+          <div className='flex items-center space-x-1 px-4 py-4'>
+            <span className='text-sm font-medium text-gray-600'>Status:</span>
+            {
+              status === 'Pending approval'
+                ? <span className='app__status_container_orange text-xs'>{status}</span>
+                : <span className='app__status_container_green text-xs'>{status}</span>
+            }
           </div>
 
           {/* Main Content */}
-          <div className='mt-10'>
+          <div className='mt-15'>
             {
-              (!loading && isDataEmpty) &&
-                <div className='w-full overflow-x-auto'>
-                  <table className="app__table">
-                    <thead className="app__thead">
-                      <tr>
-                        <th className="app__th">
-                          Item
-                        </th>
-                        <th className="app__th">
-                          Supplier A
-                        </th>
-                        <th className="app__th">
-                          Supplier B
-                        </th>
-                        <th className="app__th">
-                          Supplier C
-                        </th>
-                        <th className="app__th">
-                          Supplier A
-                        </th>
-                        <th className="app__th">
-                          Supplier B
-                        </th>
-                        <th className="app__th">
-                          Supplier C
-                        </th>
-                        <th className="app__th">
-                          Supplier A
-                        </th>
-                        <th className="app__th">
-                          Supplier B
-                        </th>
-                        <th className="app__th">
-                          Supplier C
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="app__tr">
-                        <td className="app__td">
-                          Nails
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                      </tr>
-                      <tr className="app__tr">
-                        <td className="app__td">
-                          Nails
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                      </tr>
-                      <tr className="app__tr">
-                        <td className="app__td">
-                          Nails
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                        <td className="app__td">
-                          154 (per kg)
-                        </td>
-                        <td className="app__td">
-                          322 (per kg)
-                        </td>
-                        <td className="app__td">
-                          111 (per kg)
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+              (!loading && !isDataEmpty) &&
+                <div className='w-full overflow-x-auto pb-20'>
+                  <DynamicTable items={list} suppliers={suppliers} status={status} canvassId={params.id}/>
                 </div>
             }
             {
               (!loading && isDataEmpty) &&
-                <div className='app__norecordsfound'>No records found.</div>
+                <div className='app__norecordsfound'>No items found.</div>
             }
             { loading && <TwoColTableLoading/> }
+            {
+              (!loading && !isDataEmpty) &&
+                <Remarks type='canvass' referenceId={params.id}/>
+            }
           </div>
       </div>
     </div>
+
     {/* Add/Edit Modal */}
     {
       showAddModal && (
         <AddEditModal
           editData={editData}
+          canvasId={params.id}
           hideModal={() => setShowAddModal(false)}/>
       )
     }
-    {/* Confirm (Inactive) Modal */}
+    {/* Confirm Modal */}
     {
-      showConfirmRemoveModal && (
+      showConfirmApproveModal && (
         <ConfirmModal
           header='Confirmation'
           btnText='Confirm'
           message="Please confirm this action"
-          onConfirm={handleRemoveConfirmed}
-          onCancel={() => setShowConfirmRemoveModal(false)}
+          onConfirm={handleApproveConfirmed}
+          onCancel={() => setShowConfirmApproveModal(false)}
+        />
+      )
+    }
+    {/* Confirm Modal */}
+    {
+      showConfirmUnapproveModal && (
+        <ConfirmModal
+          header='Confirmation'
+          btnText='Confirm'
+          message="Please confirm this action"
+          onConfirm={handleUnapproveConfirmed}
+          onCancel={() => setShowConfirmUnapproveModal(false)}
         />
       )
     }

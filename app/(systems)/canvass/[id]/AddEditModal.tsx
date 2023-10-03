@@ -4,43 +4,36 @@ import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
 
 // Types
-import type { CanvassItemTypes, SupplierTypes } from '@/types'
+import type { CanvassItemTypes, ProductTypes, SupplierPricesTypes, SupplierTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
-import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import { useSupabase } from '@/context/SupabaseProvider'
 import uuid from 'react-uuid'
-import { fetchSuppliers } from '@/utils/fetchApi'
+import { fetchProducts, fetchSuppliers } from '@/utils/fetchApi'
 
 interface ModalProps {
   hideModal: () => void
   editData: CanvassItemTypes | null
+  canvasId: string
 }
 
-interface SupplierPricesTypes {
-  supplier_id: string
-  supplier_name: string
-  price: string
-  unit: string
-  ref: number
-}
-
-const AddEditModal = ({ hideModal, editData }: ModalProps) => {
+const AddEditModal = ({ hideModal, editData, canvasId }: ModalProps) => {
   const { setToast } = useFilter()
-  const { supabase } = useSupabase()
+  const { supabase, session } = useSupabase()
 
   const [saving, setSaving] = useState(false)
   const [supplierPrices, setSupplierPrices] = useState<SupplierPricesTypes[] | []>([])
   const [suppliers, setSuppliers] = useState<SupplierTypes[]>([])
+  const [immutableSuppliers, setImmutableSuppliers] = useState<SupplierTypes[]>([])
   const [supplier, setSupplier] = useState('')
   const [price, setPrice] = useState('')
   const [unit, setUnit] = useState('')
+  const [products, setProducts] = useState<ProductTypes[] | []>([])
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
-  const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
   const { register, formState: { errors }, reset, handleSubmit } = useForm<CanvassItemTypes>({
@@ -62,7 +55,9 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const handleCreate = async (formdata: CanvassItemTypes) => {
     try {
       const newData = {
-        name: formdata.name
+        product_id: formdata.product_id,
+        prices: supplierPrices,
+        canvas_id: canvasId
       }
 
       const { data, error } = await supabase
@@ -72,15 +67,25 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
       if (error) throw new Error(error.message)
 
+      // add to logs
+      const prod = products.find((p: ProductTypes) => p.id.toString() === formdata.product_id)
+      const { error: logError } = await supabase
+        .from('rdt_remarks')
+        .insert({
+          reference_id: canvasId,
+          type: 'canvass',
+          reply_type: 'system',
+          message: `Added product "${prod ? prod.name : ''}"`,
+          sender_id: session.user.id
+        })
+      if (logError) throw new Error(logError.message)
+
       // Append new data in redux
-      const updatedData = { ...newData, id: data[0].id }
+      const updatedData = { ...newData, rdt_products: prod, id: data[0].id }
       dispatch(updateList([updatedData, ...globallist]))
 
       // pop up the success message
       setToast('success', 'Successfully saved.')
-
-      // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: Number(resultsCounter.showing) + 1, results: Number(resultsCounter.results) + 1 }))
 
       setSaving(false)
 
@@ -98,7 +103,8 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     if (!editData) return
 
     const newData = {
-      name: formdata.name
+      product_id: formdata.product_id,
+      prices: supplierPrices
     }
 
     try {
@@ -108,12 +114,23 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         .eq('id', editData.id)
 
       if (error) throw new Error(error.message)
-    } catch (e) {
-      console.error(e)
-    } finally {
+
+      // add to logs
+      const prod = products.find((p: ProductTypes) => p.id.toString() === formdata.product_id)
+      const { error: logError } = await supabase
+        .from('rdt_remarks')
+        .insert({
+          reference_id: canvasId,
+          type: 'canvass',
+          reply_type: 'system',
+          message: `Updated product "${prod ? prod.name : ''}"`,
+          sender_id: session.user.id
+        })
+      if (logError) throw new Error(logError.message)
+
       // Update data in redux
       const items = [...globallist]
-      const updatedData = { ...newData, id: editData.id }
+      const updatedData = { ...newData, rdt_products: prod, id: editData.id }
       const foundIndex = items.findIndex(x => x.id === updatedData.id)
       items[foundIndex] = { ...items[foundIndex], ...updatedData }
       dispatch(updateList(items))
@@ -128,41 +145,81 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
       // reset all form fields
       reset()
+    } catch (e) {
+      console.error(e)
     }
   }
 
   const handleAddPrice = () => {
+    if (supplier === '' || price === '') return
+
     const supp = suppliers.find(i => i.id.toString() === supplier.toString())
     const newRow = {
       supplier_name: supp ? supp.name : '',
       supplier_id: supplier,
       unit,
       price,
+      checked: false,
       ref: Math.floor(Math.random() * 20000) + 1
     }
+    console.log('asdf', [...supplierPrices, newRow])
+
     setSupplierPrices([...supplierPrices, newRow])
     setSupplier('')
     setPrice('')
     setUnit('')
+
+    // update dropdown list
+    setSuppliers(prevList => prevList.filter(item => item.id.toString() !== supplier.toString()))
   }
 
-  const handleRemovePrice = (ref: string) => {
-    const updatedData = supplierPrices.filter((i: any) => i.ref !== ref)
+  const handleRemovePrice = (item: SupplierPricesTypes) => {
+    const updatedData = supplierPrices.filter((i: any) => i.ref !== item.ref)
     setSupplierPrices(updatedData)
+
+    // return item to dropdown list
+    // update dropdown list
+    const sup = immutableSuppliers.find(i => i.id.toString() === item.supplier_id)
+    if (sup) {
+      const updatedList = [...suppliers, sup]
+      setSuppliers(updatedList)
+    }
   }
 
-  // manually set the defaultValues of use-form-hook whenever the component receives new props.
   useEffect(() => {
-    reset({
-      name: editData ? editData.name : ''
-    })
-
     const fetchSuppliersData = async () => {
       const result = await fetchSuppliers({ filterStatus: 'Active' }, 300, 0)
-      setSuppliers(result.data)
+
+      setImmutableSuppliers(result.data)
+
+      if (editData) {
+        setSupplierPrices(editData.prices)
+
+        // check if supplier is present on items list
+        const suppliers: SupplierTypes[] = []
+        result.data.forEach(supplier => {
+          if (editData.prices.find(p => p.supplier_id.toString() === supplier.id.toString()) === undefined) {
+            suppliers.push(supplier)
+          }
+        })
+        setSuppliers(suppliers)
+      } else {
+        setSuppliers(result.data)
+      }
     }
 
     void fetchSuppliersData()
+
+    // fetch products
+    const fetchProductsData = async () => {
+      const result = await fetchProducts({ filterStatus: 'Active' }, 9999, 0)
+      setProducts(result.data)
+
+      reset({
+        product_id: editData ? editData.product_id.toString() : ''
+      })
+    }
+    void fetchProductsData()
   }, [editData, reset])
 
   return (
@@ -183,14 +240,19 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                 ? <>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Item</div>
+                        <div className='app__label_standard'>Product Name: <span className='text-[10px] bg-yellow-100 p-1 border'>(All active products from &quot;Product Masterlist&quot; appear here)</span></div>
                         <div>
-                          <input
-                            {...register('name', { required: true })}
-                            type='text'
-                            placeholder='Product name'
-                            className='app__select_standard'/>
-                          {errors.name && <div className='app__error_message'>Item is required</div>}
+                          <select
+                            {...register('product_id', { required: true })}
+                            className='app__select_standard'>
+                              <option value=''>Choose Product</option>
+                              {
+                                products.map((item: ProductTypes, index: number) => (
+                                  <option key={index} value={item.id}>{item.name}</option>
+                                ))
+                              }
+                          </select>
+                          {errors.product_id && <div className='app__error_message'>Product name is required</div>}
                         </div>
                       </div>
                     </div>
@@ -277,7 +339,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                                   btnType='button'
                                   isDisabled={saving}
                                   title='Remove'
-                                  handleClick={() => handleRemovePrice(item.ref)}
+                                  handleClick={() => handleRemovePrice(item)}
                                   containerStyles="app__btn_red_xs"
                                 />
                               </td>
@@ -296,7 +358,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
             <div className="app__modal_footer">
                   <CustomButton
                     btnType='submit'
-                    isDisabled={saving}
+                    isDisabled={saving || supplierPrices.length === 0}
                     title={saving ? 'Saving...' : 'Submit'}
                     containerStyles="app__btn_green"
                   />

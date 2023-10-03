@@ -22,6 +22,7 @@ import InventorySideBar from './Sidebars/InventorySideBar'
 import OneColLayoutLoading from './Loading/OneColLayoutLoading'
 import ThreeColTableLoading from './Loading/ThreeColTableLoading'
 import TableRowLoading from './Loading/TableRowLoading'
+import Remarks from './Remarks/Remarks'
 
 export {
   LoginBox,
@@ -29,6 +30,7 @@ export {
   Sidebar,
   Unauthorized,
   Title,
+  Remarks,
   TopBar,
   UserBlock,
   BackButton,

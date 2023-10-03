@@ -118,9 +118,18 @@ export interface SupplierTypes {
   org_id: string
 }
 
-export interface CanvassTypes {
+export interface ProductTypes {
   id: string
   name: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
+}
+
+export interface CanvassTypes {
+  id: string
+  canvass_number: string
   description: string
   created_by: string
   rdt_users: AccountTypes
@@ -128,9 +137,54 @@ export interface CanvassTypes {
   org_id: string
 }
 
+export interface SupplierPricesTypes {
+  supplier_id: string
+  supplier_name: string
+  price: string
+  unit: string
+  ref: number
+  checked: boolean
+}
+
 export interface CanvassItemTypes {
   id: string
-  name: string
+  product_id: string
+  rdt_products: ProductTypes
   canvas_id: string
-  prices: string
+  prices: SupplierPricesTypes[]
+}
+
+export interface RemarksTypes {
+  id: string
+  sender_id?: string
+  rdt_users?: AccountTypes
+  message: string
+  parent_id?: string
+  type: string
+  reply_type?: string
+  reference_id?: string
+  created_at: string
+}
+
+export interface PurchaseOrderTypes {
+  id: string
+  date: string
+  supplier_id: string
+  po_number: string
+  description: string
+  created_by: string
+  rdt_users: AccountTypes
+  rdt_suppliers: SupplierTypes
+  status: string
+  org_id: string
+}
+
+export interface PurchaseOrderItemTypes {
+  id: string
+  product_id: string
+  rdt_products: ProductTypes
+  purchase_order_id: string
+  quantity: string
+  price: string
+  total: string
 }

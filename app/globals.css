@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 .app__main {
-  @apply lg:ml-64 mt-20 pb-0
+  @apply lg:ml-64 mt-20 pb-10
 }
 .app__home {
   @apply pb-0
 }
 .app__title {
-  @apply flex items-center space-x-2 px-4 mt-4 py-2 border-gray-200 border-b
+  @apply flex items-center justify-start space-x-2 px-4 mt-4 py-2 border-gray-200 border-b
 }
 .app__filters {
   @apply mx-4 py-4
@@ -27,7 +27,7 @@
   @apply px-4 mt-10
 }
 .app__table {
-  @apply w-full text-sm text-left text-gray-600 border-t
+  @apply w-full text-sm text-left text-gray-700 border-t
 }
 .app__thead {
   @apply text-xs border-b uppercase bg-gray-100
@@ -77,6 +77,9 @@
 .app__btn_red_xs {
   @apply bg-red-500 hover:bg-red-600 active:bg-red-500 border border-red-600 px-1 py-px text-xs text-white rounded-sm
 }
+.app__btn_orange_xs {
+  @apply bg-orange-500 hover:bg-orange-600 active:bg-orange-500 border border-orange-600 px-1 py-px text-xs text-white rounded-sm
+}
 .app__btn_normal {
   @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-100 border border-gray-200 font-bold px-2 py-1 text-xs text-gray-500 rounded-sm
 }
@@ -91,6 +94,9 @@
 }
 .app__btn_blue {
   @apply bg-blue-500 hover:bg-blue-600 active:bg-blue-500 border border-blue-600 font-bold px-2 py-1 text-xs text-white rounded-sm
+}
+.app__btn_blue_xs {
+  @apply bg-blue-500 hover:bg-blue-600 active:bg-blue-500 border border-blue-600 px-1 py-px text-xs text-white rounded-sm
 }
 .app__btn_gray {
   @apply bg-gray-500 hover:bg-gray-600 border active:bg-gray-500 border-gray-600 font-bold px-2 py-1 text-xs text-white rounded-sm
@@ -204,7 +210,7 @@
   @apply grid grid-cols-1 gap-4 mb-4
 }
 .app__label_standard {
-  @apply text-gray-600 font-medium text-sm mb-1
+  @apply text-gray-600 font-medium text-sm mb-1 pl-1
 }
 .app__label_value {
   @apply text-gray-600 font-bold text-sm mb-1

@@ -1,6 +1,6 @@
 'use client'
 
-import { fetchCanvass } from '@/utils/fetchApi'
+import { fetchPurchaseOrders } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, InventorySideBar, UserBlock } from '@/components'
@@ -10,7 +10,7 @@ import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { CanvassTypes } from '@/types'
+import type { PurchaseOrderTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -19,13 +19,14 @@ import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
 import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
+import { format } from 'date-fns'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [list, setList] = useState<CanvassTypes[]>([])
+  const [list, setList] = useState<PurchaseOrderTypes[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
-  const [editData, setEditData] = useState<CanvassTypes | null>(null)
+  const [editData, setEditData] = useState<PurchaseOrderTypes | null>(null)
 
   const [filterKeyword, setFilterKeyword] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
@@ -44,7 +45,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchCanvass({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchPurchaseOrders({ filterKeyword, filterStatus }, perPageCount, 0)
 
       // update the list in redux
       dispatch(updateList(result.data))
@@ -63,7 +64,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchCanvass({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchPurchaseOrders({ filterKeyword, filterStatus }, perPageCount, list.length)
 
       // update the list in redux
       const newList = [...list, ...result.data]
@@ -83,7 +84,7 @@ const Page: React.FC = () => {
     setEditData(null)
   }
 
-  const handleEdit = (item: CanvassTypes) => {
+  const handleEdit = (item: PurchaseOrderTypes) => {
     setShowAddModal(true)
     setEditData(item)
   }
@@ -115,10 +116,10 @@ const Page: React.FC = () => {
     <div className="app__main">
       <div>
           <div className='app__title'>
-            <Title title='Price Canvass'/>
+            <Title title='Purchase Orders'/>
             <CustomButton
               containerStyles='app__btn_green'
-              title='Add New Price Canvass'
+              title='Create New P.O.'
               btnType='button'
               handleClick={handleAdd}
             />
@@ -145,10 +146,16 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Canvass #
+                          PO #
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Description
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Date
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Supplier
                       </th>
                       <th className="hidden md:table-cell app__th">
                       </th>
@@ -158,12 +165,11 @@ const Page: React.FC = () => {
                       <th className="hidden md:table-cell app__th">
                           Added By
                       </th>
-                      <th></th>
                   </tr>
               </thead>
               <tbody>
                 {
-                  !isDataEmpty && list.map((item: CanvassTypes) => (
+                  !isDataEmpty && list.map((item: PurchaseOrderTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
@@ -203,7 +209,7 @@ const Page: React.FC = () => {
                       </td>
                       <th
                         className="app__th_firstcol">
-                        {item.canvass_number}
+                        {item.po_number}
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
@@ -227,7 +233,15 @@ const Page: React.FC = () => {
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
-                        <Link href={`/canvass/${item.id}`} className='app__btn_green_xs'>View Products & Prices</Link>
+                        {format(new Date(item.date), 'MMMM dd, yyyy')}
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        {item.rdt_suppliers?.name}
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        <Link href={`/purchaseorders/${item.id}`} className='app__btn_green_xs'>View Items</Link>
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
@@ -244,7 +258,7 @@ const Page: React.FC = () => {
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={6} rows={2}/> }
+                { loading && <TableRowLoading cols={8} rows={2}/> }
               </tbody>
             </table>
             {

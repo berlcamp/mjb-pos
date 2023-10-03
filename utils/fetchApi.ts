@@ -1,6 +1,6 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-import type { AccountTypes, CanvassTypes, Employee, LocationTypes, ProjectTypes, SupplierTypes, excludedItemsTypes } from '@/types'
+import type { AccountTypes, CanvassTypes, Employee, LocationTypes, ProductTypes, ProjectTypes, PurchaseOrderTypes, SupplierTypes, excludedItemsTypes } from '@/types'
 
 const supabase = createClientComponentClient()
 
@@ -216,6 +216,48 @@ export async function fetchSuppliers (filters: { filterKeyword?: string, filterS
   }
 }
 
+export async function fetchProducts (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_products')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: ProductTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
 export async function fetchCanvass (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
   try {
     let query = supabase
@@ -250,6 +292,48 @@ export async function fetchCanvass (filters: { filterKeyword?: string, filterSta
     }
 
     const data: CanvassTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchPurchaseOrders (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_purchase_orders')
+      .select('*, rdt_users(name,avatar_url), rdt_suppliers(name)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`description.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data: userData, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    const data: PurchaseOrderTypes[] = userData
 
     return { data, count }
   } catch (error) {

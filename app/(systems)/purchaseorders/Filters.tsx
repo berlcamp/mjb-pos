@@ -10,7 +10,8 @@ interface FilterTypes {
 
 const statuses = [
   'Pending approval',
-  'Approved'
+  'Approved',
+  'Purchase Completed'
 ]
 
 const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {
@@ -56,7 +57,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {
               className="app__filter_input"/>
           </div>
         </form>
-        <div className="w-60 inline-flex">
+        <div className="w-96 inline-flex">
           <Listbox value={selectedStatus} onChange={setSelectedStatus}>
             <div className="relative">
               <Listbox.Button className="app__listbox_btn">

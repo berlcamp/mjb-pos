@@ -30,6 +30,7 @@ export default async function RootLayout ({ children }: { children: React.ReactN
   let sysSettings: settingsDataTypes[] | null = []
 
   if (session) {
+    // system settings
     const { data: systemSettings, error } = await supabase
       .from('system_settings')
       .select()
@@ -39,12 +40,13 @@ export default async function RootLayout ({ children }: { children: React.ReactN
 
     sysSettings = systemSettings
 
-    const { data: systemUsers, error: systemUsersError } = await supabase
+    // system users
+    const { data: systemUsers, error: error2 } = await supabase
       .from('rdt_users')
       .select()
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
-    if (systemUsersError) console.error(systemUsersError)
+    if (error2) console.error(error2)
 
     sysUsers = systemUsers
   }
@@ -53,7 +55,7 @@ export default async function RootLayout ({ children }: { children: React.ReactN
     <html lang="en">
       <body className={`relative ${session ? 'bg-white' : 'bg-gray-100'}`}>
 
-        <SupabaseProvider systemSettings={sysSettings} session={session} systemUsers={sysUsers}>
+        <SupabaseProvider systemSettings={sysSettings} session={session} systemUsers={sysUsers} >
             <SupabaseListener serverAccessToken={session?.access_token} />
               {!session && <LandingPage/> }
               {

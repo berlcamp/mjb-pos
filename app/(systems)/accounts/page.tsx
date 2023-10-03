@@ -3,7 +3,7 @@
 import { fetchAccounts } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, EmployeesSideBar, Title, Unauthorized, CustomButton, ConfirmModal, UserBlock } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, ConfirmModal, UserBlock, SettingsSideBar } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
@@ -158,7 +158,7 @@ const Page: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globallist])
 
-  // Featch data
+  // Fetch data
   useEffect(() => {
     setList([])
     void fetchData()
@@ -174,7 +174,7 @@ const Page: React.FC = () => {
   return (
     <>
     <Sidebar>
-      <EmployeesSideBar/>
+      <SettingsSideBar/>
     </Sidebar>
     <TopBar/>
     <div className="app__main">

@@ -20,11 +20,6 @@ const EmployeesSideBar = () => {
               <span className="flex-1 ml-3 whitespace-nowrap">Employees</span>
             </Link>
         </li>
-        <li>
-            <Link href="/accounts" className={`app__menu_link ${currentRoute === '/accounts' ? 'app_menu_link_active' : ''}`}>
-              <span className="flex-1 ml-3 whitespace-nowrap">Login Accounts</span>
-            </Link>
-        </li>
       </ul>
     </>
   )

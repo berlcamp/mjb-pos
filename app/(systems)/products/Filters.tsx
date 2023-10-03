@@ -9,8 +9,8 @@ interface FilterTypes {
 }
 
 const statuses = [
-  'Pending approval',
-  'Approved'
+  'Active',
+  'Archived'
 ]
 
 const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {
@@ -91,7 +91,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {
                       {({ selected }) => (
                         <>
                           <span
-                            className={`block text-xs ${
+                            className={`block truncate text-xs ${
                               selected ? 'font-medium' : 'font-normal'
                             }`}
                           >

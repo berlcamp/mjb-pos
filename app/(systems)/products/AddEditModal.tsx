@@ -4,7 +4,7 @@ import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
 
 // Types
-import type { AccountTypes, CanvassTypes } from '@/types'
+import type { AccountTypes, ProductTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -14,7 +14,7 @@ import { useSupabase } from '@/context/SupabaseProvider'
 
 interface ModalProps {
   hideModal: () => void
-  editData: CanvassTypes | null
+  editData: ProductTypes | null
 }
 
 const AddEditModal = ({ hideModal, editData }: ModalProps) => {
@@ -27,11 +27,11 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { register, formState: { errors }, reset, handleSubmit } = useForm<CanvassTypes>({
+  const { register, formState: { errors }, reset, handleSubmit } = useForm<ProductTypes>({
     mode: 'onSubmit'
   })
 
-  const onSubmit = async (formdata: CanvassTypes) => {
+  const onSubmit = async (formdata: ProductTypes) => {
     if (saving) return
 
     setSaving(true)
@@ -43,18 +43,17 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     }
   }
 
-  const handleCreate = async (formdata: CanvassTypes) => {
+  const handleCreate = async (formdata: ProductTypes) => {
     try {
       const newData = {
-        canvass_number: Math.floor(Math.random() * 99999) + 10000,
-        description: formdata.description,
+        name: formdata.name,
         created_by: session.user.id,
-        status: 'Pending approval',
+        status: 'Active',
         org_id: process.env.NEXT_PUBLIC_ORG_ID
       }
 
       const { data, error: error2 } = await supabase
-        .from('rdt_canvasses')
+        .from('rdt_products')
         .insert(newData)
         .select()
 
@@ -83,21 +82,23 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     }
   }
 
-  const handleUpdate = async (formdata: CanvassTypes) => {
+  const handleUpdate = async (formdata: ProductTypes) => {
     if (!editData) return
 
     const newData = {
-      description: formdata.description
+      name: formdata.name
     }
 
     try {
       const { error } = await supabase
-        .from('rdt_canvasses')
+        .from('rdt_products')
         .update(newData)
         .eq('id', editData.id)
 
       if (error) throw new Error(error.message)
-
+    } catch (e) {
+      console.error(e)
+    } finally {
       // Update data in redux
       const items = [...globallist]
       const updatedData = { ...newData, id: editData.id }
@@ -115,15 +116,13 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
       // reset all form fields
       reset()
-    } catch (e) {
-      console.error(e)
     }
   }
 
   // manually set the defaultValues of use-form-hook whenever the component receives new props.
   useEffect(() => {
     reset({
-      description: editData ? editData.description : ''
+      name: editData ? editData.name : ''
     })
   }, [editData, reset])
 
@@ -134,7 +133,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         <div className="app__modal_wrapper3">
           <div className="app__modal_header">
             <h5 className="app__modal_header_text">
-              Price Canvass Details
+              Product Details
             </h5>
             <button disabled={saving} onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
           </div>
@@ -145,13 +144,13 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                 ? <>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Description</div>
+                        <div className='app__label_standard'>Product Name</div>
                         <div>
                           <input
-                            {...register('description', { required: true })}
+                            {...register('name', { required: true })}
                             type='text'
                             className='app__select_standard'/>
-                          {errors.description && <div className='app__error_message'>Description is required</div>}
+                          {errors.name && <div className='app__error_message'>Product Name is required</div>}
                         </div>
                       </div>
                     </div>
