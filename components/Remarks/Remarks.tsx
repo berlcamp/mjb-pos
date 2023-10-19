@@ -48,6 +48,7 @@ export default function Remarks ({ type, referenceId }: propTypes) {
     }
 
     void fetchData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

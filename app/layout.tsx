@@ -12,8 +12,8 @@ import type { Metadata } from 'next'
 import type { AccountTypes, settingsDataTypes } from '@/types'
 
 export const metadata: Metadata = {
-  title: 'RDT DATA MANAGER',
-  description: 'RDT DATA MANAGER by BTC'
+  title: process.env.NEXT_PUBLIC_ORG_NAME,
+  description: process.env.NEXT_PUBLIC_ORG_NAME
 }
 
 // do not cache this layout

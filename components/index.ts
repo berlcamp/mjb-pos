@@ -23,6 +23,7 @@ import OneColLayoutLoading from './Loading/OneColLayoutLoading'
 import ThreeColTableLoading from './Loading/ThreeColTableLoading'
 import TableRowLoading from './Loading/TableRowLoading'
 import Remarks from './Remarks/Remarks'
+import PosSideBar from './Sidebars/PosSideBar'
 
 export {
   LoginBox,
@@ -38,6 +39,7 @@ export {
   ProjectsSideBar,
   EmployeesSideBar,
   InventorySideBar,
+  PosSideBar,
   CustomButton,
   OneColLayoutLoading,
   ThreeColTableLoading,

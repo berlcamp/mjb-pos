@@ -20,19 +20,38 @@ const InventorySideBar = () => {
               <span className="flex-1 ml-3 whitespace-nowrap">Price Canvass</span>
             </Link>
         </li>
-        <li>
-            <Link href="/suppliers" className={`app__menu_link ${currentRoute === '/suppliers' ? 'app_menu_link_active' : ''}`}>
-              <span className="flex-1 ml-3 whitespace-nowrap">Suppliers</span>
-            </Link>
-        </li>
+
         <li>
             <Link href="/purchaseorders" className={`app__menu_link ${currentRoute.includes('purchaseorders') ? 'app_menu_link_active' : ''}`}>
               <span className="flex-1 ml-3 whitespace-nowrap">Purchase Orders</span>
             </Link>
         </li>
-        <li>
+        {/* <li>
             <Link href="/#" className={`app__menu_link ${currentRoute === '/#' ? 'app_menu_link_active' : ''}`}>
               <span className="flex-1 ml-3 whitespace-nowrap">Inventory</span>
+            </Link>
+        </li> */}
+      </ul>
+      <ul className="pt-8 mt-4 space-y-2 border-gray-700">
+        <li>
+          <div className='flex items-center text-gray-500 items-centers space-x-1 px-2'>
+            <Cog6ToothIcon className='w-4 h-4'/>
+            <span>Products Settings</span>
+          </div>
+        </li>
+        <li>
+          <Link href="/products" className={`app__menu_link ${currentRoute === '/products' ? 'app_menu_link_active' : ''}`}>
+              <span className="flex-1 ml-3 whitespace-nowrap">Products Masterlist</span>
+            </Link>
+        </li>
+        <li>
+          <Link href="/productcategories" className={`app__menu_link ${currentRoute === '/productcategories' ? 'app_menu_link_active' : ''}`}>
+              <span className="flex-1 ml-3 whitespace-nowrap">Product Categories</span>
+            </Link>
+        </li>
+        <li>
+          <Link href="/productunits" className={`app__menu_link ${currentRoute === '/productunits' ? 'app_menu_link_active' : ''}`}>
+              <span className="flex-1 ml-3 whitespace-nowrap">Product Units</span>
             </Link>
         </li>
       </ul>
@@ -40,12 +59,12 @@ const InventorySideBar = () => {
         <li>
           <div className='flex items-center text-gray-500 items-centers space-x-1 px-2'>
             <Cog6ToothIcon className='w-4 h-4'/>
-            <span>Settings</span>
+            <span>Suppliers Settings</span>
           </div>
         </li>
         <li>
-        <Link href="/products" className={`app__menu_link ${currentRoute === '/products' ? 'app_menu_link_active' : ''}`}>
-              <span className="flex-1 ml-3 whitespace-nowrap">Products Masterlist</span>
+            <Link href="/suppliers" className={`app__menu_link ${currentRoute === '/suppliers' ? 'app_menu_link_active' : ''}`}>
+              <span className="flex-1 ml-3 whitespace-nowrap">Suppliers Masterlist</span>
             </Link>
         </li>
       </ul>

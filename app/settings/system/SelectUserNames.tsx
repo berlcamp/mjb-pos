@@ -86,10 +86,10 @@ export default function SelectUserNames ({ settingsData, multiple, type, handleM
 
   const getUserNamesFromSystemUsersContext = (id: string) => {
     //
-    const users: accountNamesType[] = systemUsers.filter((x: accountNamesType) => x.id.toString() === id.toString())
+    const users: accountNamesType = systemUsers.find((x: accountNamesType) => x.id.toString() === id.toString())
 
-    if (users.length > 0) {
-      return capitalizeWords(users[0].name.toString())
+    if (users) {
+      return capitalizeWords(users.name.toString())
     } else {
       return ''
     }

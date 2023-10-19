@@ -4,7 +4,7 @@ import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
 
 // Types
-import type { AccountTypes, ProductCategoryTypes, ProductTypes } from '@/types'
+import type { AccountTypes, ProductTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -19,10 +19,8 @@ interface ModalProps {
 
 const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const { setToast } = useFilter()
-  const [saving, setSaving] = useState(false)
-  const [categories, setCategories] = useState<ProductCategoryTypes[] | []>([])
-
   const { supabase, session, systemUsers } = useSupabase()
+  const [saving, setSaving] = useState(false)
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
@@ -49,14 +47,13 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     try {
       const newData = {
         name: formdata.name,
-        category_id: formdata.category_id,
         created_by: session.user.id,
         status: 'Active',
         org_id: process.env.NEXT_PUBLIC_ORG_ID
       }
 
       const { data, error: error2 } = await supabase
-        .from('rdt_products')
+        .from('rdt_product_units')
         .insert(newData)
         .select()
 
@@ -64,8 +61,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
       // Append new data in redux
       const user: AccountTypes = systemUsers.find((user: AccountTypes) => user.id === session.user.id)
-      const category = categories.find((category: ProductCategoryTypes) => category.id.toString() === formdata.category_id.toString())
-      const updatedData = { ...newData, id: data[0].id, rdt_users: { name: user.name, avatar_url: user.avatar_url }, rdt_product_categories: category }
+      const updatedData = { ...newData, id: data[0].id, rdt_users: { name: user.name, avatar_url: user.avatar_url } }
       dispatch(updateList([updatedData, ...globallist]))
 
       // pop up the success message
@@ -90,13 +86,12 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     if (!editData) return
 
     const newData = {
-      name: formdata.name,
-      category_id: formdata.category_id
+      name: formdata.name
     }
 
     try {
       const { error } = await supabase
-        .from('rdt_products')
+        .from('rdt_product_units')
         .update(newData)
         .eq('id', editData.id)
 
@@ -106,9 +101,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     } finally {
       // Update data in redux
       const items = [...globallist]
-      const category = categories.find((category: ProductCategoryTypes) => category.id.toString() === formdata.category_id.toString())
-      const updatedData = { ...newData, id: editData.id, rdt_product_categories: category }
-      console.log('updatedData', updatedData)
+      const updatedData = { ...newData, id: editData.id }
       const foundIndex = items.findIndex(x => x.id === updatedData.id)
       items[foundIndex] = { ...items[foundIndex], ...updatedData }
       dispatch(updateList(items))
@@ -131,20 +124,6 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     reset({
       name: editData ? editData.name : ''
     })
-
-    void (async () => {
-      const { data } = await supabase
-        .from('rdt_product_categories')
-        .select()
-        .eq('status', 'Active')
-        .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
-      setCategories(data)
-      // prepopulate category
-      reset({
-        category_id: editData ? editData.category_id : ''
-      })
-    })()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData, reset])
 
   return (
@@ -154,7 +133,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         <div className="app__modal_wrapper3">
           <div className="app__modal_header">
             <h5 className="app__modal_header_text">
-              Product Details
+              Product Unit Details
             </h5>
             <button disabled={saving} onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
           </div>
@@ -165,30 +144,14 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                 ? <>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Product Name</div>
+                        <div className='app__label_standard'>Unit Name</div>
                         <div>
                           <input
                             {...register('name', { required: true })}
                             type='text'
+                            placeholder='example Kg, Inches, mm'
                             className='app__select_standard'/>
-                          {errors.name && <div className='app__error_message'>Product Name is required</div>}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='app__form_field_container'>
-                      <div className='w-full'>
-                        <div className='app__label_standard'>Category (optional)</div>
-                        <div>
-                          <select
-                            {...register('category_id')}
-                            className='app__select_standard'>
-                              <option value=''>Select</option>
-                              {
-                                categories.map((category: ProductCategoryTypes, index) => (
-                                  <option key={index} value={category.id}>{category.name}</option>
-                                ))
-                              }
-                          </select>
+                          {errors.name && <div className='app__error_message'>Unit Name is required</div>}
                         </div>
                       </div>
                     </div>

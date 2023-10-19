@@ -1,5 +1,5 @@
 'use client'
-import { Cog6ToothIcon, DocumentDuplicateIcon, FolderIcon, ListBulletIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { Cog6ToothIcon, ComputerDesktopIcon, DocumentDuplicateIcon, FolderIcon, ListBulletIcon, UsersIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 const MainMenu: React.FC = () => {
@@ -51,6 +51,17 @@ const MainMenu: React.FC = () => {
                 <div>
                   <div className='app__menu_item_label'>Supply and Material Management</div>
                   <div className='app__menu_item_label_description'>Canvass, Inventory, Purchase Orders. </div>
+                </div>
+              </div>
+            </Link>
+            <Link href='/casher'>
+              <div className='app__menu_item'>
+                <div className='pt-1'>
+                  <ComputerDesktopIcon className='w-8 h-8'/>
+                </div>
+                <div>
+                  <div className='app__menu_item_label'>Point of Sale</div>
+                  <div className='app__menu_item_label_description'>Customer Orders and Sales.</div>
                 </div>
               </div>
             </Link>

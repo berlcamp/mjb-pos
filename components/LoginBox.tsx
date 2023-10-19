@@ -94,7 +94,6 @@ export default function LoginBox () {
           <div className='bg-white p-4 w-96 rounded-lg shadow-lg'>
             <div className="text-center">
               <div className="font-semibold text-sm text-gray-500 mt-1 mb-2 pb-1">Welcome back!</div>
-              <div className="font-semibold mt-1 mb-12 text-gray-700 pb-1">RDT Data Manager <span className='text-xs text-gray-500'>v1.0.0</span></div>
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import TopMenu from '@/components/TopBars/TopMenu'
-import Notifications from '@/components/TopBars/Notifications'
+// import Notifications from '@/components/TopBars/Notifications'
 import UserDropdown from '@/components/TopBars/UserDropdown'
 
 export default function TopBarDark ({ isGuest }: { isGuest?: boolean }) {
@@ -14,7 +14,7 @@ export default function TopBarDark ({ isGuest }: { isGuest?: boolean }) {
             !isGuest &&
               <>
                 <TopMenu darkMode={true}/>
-                <Notifications darkMode={true}/>
+                {/* <Notifications darkMode={true}/> */}
                 <UserDropdown darkMode={true}/>
               </>
           }

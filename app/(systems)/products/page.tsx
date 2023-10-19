@@ -203,7 +203,10 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Product Name
+                          Product
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Category
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Status
@@ -293,6 +296,11 @@ const Page: React.FC = () => {
                         {/* End - Mobile View */}
 
                       </th>
+
+                      <td
+                        className="hidden md:table-cell app__td">
+                        {item.rdt_product_categories?.name}
+                      </td>
                       <td
                         className="hidden md:table-cell app__td">
                         {
@@ -308,7 +316,7 @@ const Page: React.FC = () => {
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={4} rows={2}/> }
+                { loading && <TableRowLoading cols={5} rows={2}/> }
               </tbody>
             </table>
             {

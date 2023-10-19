@@ -53,6 +53,7 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
     let query = supabase
       .from('rdt_users')
       .select('*', { count: 'exact' })
+      .neq('email', 'berlcamp@gmail.com')
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
@@ -220,7 +221,7 @@ export async function fetchProducts (filters: { filterKeyword?: string, filterSt
   try {
     let query = supabase
       .from('rdt_products')
-      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .select('*, rdt_users(name,avatar_url), rdt_product_categories(name)', { count: 'exact' })
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
@@ -250,6 +251,86 @@ export async function fetchProducts (filters: { filterKeyword?: string, filterSt
     }
 
     const data: ProductTypes[] = userData
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchProductUnits (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_product_units')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchProductCategories (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_product_categories')
+      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
 
     return { data, count }
   } catch (error) {

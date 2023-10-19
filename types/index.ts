@@ -121,6 +121,25 @@ export interface SupplierTypes {
 export interface ProductTypes {
   id: string
   name: string
+  category_id: string
+  created_by: string
+  rdt_users: AccountTypes
+  rdt_product_categories: ProductCategoryTypes
+  status: string
+  org_id: string
+}
+export interface ProductCategoryTypes {
+  id: string
+  name: string
+  created_by: string
+  rdt_users: AccountTypes
+  status: string
+  org_id: string
+}
+
+export interface ProductUnitTypes {
+  id: string
+  name: string
   created_by: string
   rdt_users: AccountTypes
   status: string

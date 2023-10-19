@@ -21,6 +21,7 @@ interface ModalProps {
 const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const { setToast } = useFilter()
   const { supabase } = useSupabase()
+  const [errorMessage, setErrorMessage] = useState('')
   const [saving, setSaving] = useState(false)
 
   // Redux staff
@@ -58,6 +59,9 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
       axios.post('/api/signup', {
         item: newData
       }).then(async function (response) {
+        if (response.data.error) {
+          throw new Error(response.data.error)
+        }
         const { error: error2 } = await supabase
           .from('rdt_users')
           .insert({ ...newData, id: response.data.insert_id })
@@ -81,11 +85,17 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
         // reset all form fields
         reset()
-      }).catch(function (error) {
-        console.error(error)
+      }).catch(function (e) {
+        if (e instanceof Error) {
+          setErrorMessage(e.message)
+          setSaving(false)
+        }
       })
     } catch (e) {
-      console.error(e)
+      if (e instanceof Error) {
+        setErrorMessage(e.message)
+        setSaving(false)
+      }
     }
   }
 
@@ -151,6 +161,9 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
             {
               !saving
                 ? <>
+                  {
+                    errorMessage !== '' && <div className='app__error_message mb-4'>{errorMessage}</div>
+                  }
                   <div className='app__form_field_container'>
                     <div className='w-full'>
                       <div className='app__label_standard'>Name</div>

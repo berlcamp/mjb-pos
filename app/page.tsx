@@ -9,7 +9,7 @@ export default async function Page () {
             <LoginBox/>
         </div>
         <div className='bg-gray-800 p-4'>
-          <div className='text-white text-center text-xs'>RDT Systems v1.0.0</div>
+          <div className='text-white text-center text-xs'>BTC Systems v1.1</div>
         </div>
       </div>
     </>

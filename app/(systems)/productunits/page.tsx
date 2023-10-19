@@ -1,16 +1,16 @@
 'use client'
 
-import { fetchAccounts } from '@/utils/fetchApi'
+import { fetchProductUnits } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, ConfirmModal, UserBlock, SettingsSideBar } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, InventorySideBar, UserBlock, ConfirmModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { AccountTypes } from '@/types'
+import type { ProductTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,13 +21,13 @@ import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [list, setList] = useState<AccountTypes[]>([])
+  const [list, setList] = useState<ProductTypes[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
   const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
-  const [editData, setEditData] = useState<AccountTypes | null>(null)
+  const [editData, setEditData] = useState<ProductTypes | null>(null)
 
   const [filterKeyword, setFilterKeyword] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
@@ -39,14 +39,14 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { supabase, session } = useSupabase()
+  const { session, supabase } = useSupabase()
   const { hasAccess, setToast } = useFilter()
 
   const fetchData = async () => {
     setLoading(true)
 
     try {
-      const result = await fetchAccounts({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchProductUnits({ filterKeyword, filterStatus }, perPageCount, 0)
 
       // update the list in redux
       dispatch(updateList(result.data))
@@ -65,7 +65,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchAccounts({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchProductUnits({ filterKeyword, filterStatus }, perPageCount, list.length)
 
       // update the list in redux
       const newList = [...list, ...result.data]
@@ -85,7 +85,7 @@ const Page: React.FC = () => {
     setEditData(null)
   }
 
-  const handleEdit = (item: AccountTypes) => {
+  const handleEdit = (item: ProductTypes) => {
     setShowAddModal(true)
     setEditData(item)
   }
@@ -103,8 +103,8 @@ const Page: React.FC = () => {
   const handleInactiveConfirmed = async () => {
     try {
       const { error } = await supabase
-        .from('rdt_users')
-        .update({ status: 'Inactive' })
+        .from('rdt_product_units')
+        .update({ status: 'Archived' })
         .eq('id', selectedId)
 
       if (error) throw new Error(error.message)
@@ -112,7 +112,7 @@ const Page: React.FC = () => {
       // Update data in redux
       const items = [...globallist]
       const foundIndex = items.findIndex(x => x.id === selectedId)
-      items[foundIndex] = { ...items[foundIndex], status: 'Inactive' }
+      items[foundIndex] = { ...items[foundIndex], status: 'Archived' }
       dispatch(updateList(items))
 
       // pop up the success message
@@ -126,7 +126,7 @@ const Page: React.FC = () => {
   const handleActiveConfirmed = async () => {
     try {
       const { error } = await supabase
-        .from('rdt_users')
+        .from('rdt_product_units')
         .update({ status: 'Active' })
         .eq('id', selectedId)
 
@@ -149,10 +149,9 @@ const Page: React.FC = () => {
   // Update list whenever list in redux updates
   useEffect(() => {
     setList(globallist)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globallist])
 
-  // Fetch data
+  // Featch data
   useEffect(() => {
     setList([])
     void fetchData()
@@ -163,27 +162,24 @@ const Page: React.FC = () => {
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('employee_accounts') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('inventory') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
 
   return (
     <>
     <Sidebar>
-      <SettingsSideBar/>
+      <InventorySideBar/>
     </Sidebar>
     <TopBar/>
     <div className="app__main">
       <div>
           <div className='app__title'>
-            <Title title='Login Accounts'/>
-            {
-              (isDataEmpty || list.length > 1) &&
-                <CustomButton
-                  containerStyles='app__btn_green'
-                  title='Add New Account'
-                  btnType='button'
-                  handleClick={handleAdd}
-                />
-            }
+            <Title title='Product Units'/>
+            <CustomButton
+              containerStyles='app__btn_green'
+              title='Add New Unit'
+              btnType='button'
+              handleClick={handleAdd}
+            />
           </div>
 
           {/* Filters */}
@@ -192,11 +188,6 @@ const Page: React.FC = () => {
               setFilterKeyword={setFilterKeyword}
               setFilterStatus={setFilterStatus}/>
           </div>
-
-          {
-            (!isDataEmpty && list.length > 1) &&
-              <div className='app__warning_text'><span className='app__warning_title'>Warning:</span> Maximum of 2 login accounts limit reach, you need to upgrade your account to create more login accounts.</div>
-          }
 
           {/* Per Page */}
           <PerPage
@@ -212,22 +203,19 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Name
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Email
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Temporary Password
+                          Unit
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Status
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Added By
                       </th>
                   </tr>
               </thead>
               <tbody>
                 {
-                  !isDataEmpty && list.map((item: any) => (
+                  !isDataEmpty && list.map((item: ProductTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
@@ -260,49 +248,46 @@ const Page: React.FC = () => {
                                       <span>Edit</span>
                                     </div>
                                 </Menu.Item>
-                                {
-                                  item.id !== session.user.id &&
-                                    <Menu.Item>
-                                      <div className='app__dropdown_item2'>
-                                      {
-                                        item.status === 'Active' &&
-                                            <CustomButton
-                                              containerStyles='app__btn_red_xs'
-                                              title='Mark as Inactive'
-                                              btnType='button'
-                                              handleClick={() => handleInactive(item.id)}
-                                            />
-                                      }
-                                      {
-                                        item.status === 'Inactive' &&
-                                            <CustomButton
-                                              containerStyles='app__btn_green_xs'
-                                              title='Mark as Active'
-                                              btnType='button'
-                                              handleClick={() => handleActive(item.id)}
-                                            />
-                                      }
-                                      </div>
-                                    </Menu.Item>
-                                }
+                                <Menu.Item>
+                                  <div className='app__dropdown_item2'>
+                                  {
+                                    item.status === 'Active' &&
+                                        <CustomButton
+                                          containerStyles='app__btn_orange_xs'
+                                          title='Move to archived'
+                                          btnType='button'
+                                          handleClick={() => handleInactive(item.id)}
+                                        />
+                                  }
+                                  {
+                                    item.status === 'Archived' &&
+                                        <CustomButton
+                                          containerStyles='app__btn_green_xs'
+                                          title='Remove from archived'
+                                          btnType='button'
+                                          handleClick={() => handleActive(item.id)}
+                                        />
+                                  }
+                                  </div>
+                                </Menu.Item>
                               </div>
                             </Menu.Items>
                           </Transition>
                         </Menu>
                       </td>
-                      <th className="app__th_firstcol">
-                        <UserBlock user={item}/>
+                      <th
+                        className="app__th_firstcol">
+                        {item.name}
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
                             <div>
                             {
-                              item.status === 'Inactive'
-                                ? <span className='app__status_container_red'>Inactive</span>
+                              item.status === 'Archived'
+                                ? <span className='app__status_container_red'>Archived</span>
                                 : <span className='app__status_container_green'>Active</span>
                             }
                             </div>
-                            <div><span className='app_td_mobile_label'>Email:</span> {item.email}</div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -310,24 +295,20 @@ const Page: React.FC = () => {
                       </th>
                       <td
                         className="hidden md:table-cell app__td">
-                        <div>{item.email}</div>
-                      </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        <div>{item.temp_password}</div>
-                      </td>
-                      <td
-                        className="hidden md:table-cell app__td">
                         {
-                          item.status === 'Inactive'
-                            ? <span className='app__status_container_red'>Inactive</span>
+                          item.status === 'Archived'
+                            ? <span className='app__status_container_red'>Archived</span>
                             : <span className='app__status_container_green'>Active</span>
                         }
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        <UserBlock user={item.rdt_users}/>
                       </td>
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={5} rows={2}/> }
+                { loading && <TableRowLoading cols={4} rows={2}/> }
               </tbody>
             </table>
             {

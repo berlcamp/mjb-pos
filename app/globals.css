@@ -39,7 +39,7 @@
   @apply py-2 px-2 text-gray-900 align-top
 }
 .app__th_firstcol {
-  @apply py-2 px-2 text-gray-800 font-medium align-top
+  @apply py-2 pl-4 pr-2 text-gray-800 font-medium align-top
 }
 .app__td {
   @apply py-2 px-2 align-top font-normal
@@ -178,6 +178,12 @@
 }
 .app__filter_input {
   @apply w-48 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
+}
+.app__filter_date {
+  @apply w-32 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
+}
+.app__filter_select {
+  @apply w-32 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
 }
 .app__filter_container {
   @apply inline-flex items-center border border-gray-300 rounded-lg mr-1 px-2 py-1 bg-white dark:bg-gray-300

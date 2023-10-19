@@ -30,7 +30,9 @@ export async function POST (req: NextRequest) {
 
     return NextResponse.json({ insert_id: newUser.user.id })
   } catch (error) {
-    console.log(error)
-    return NextResponse.json({ error })
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message })
+    }
+    return NextResponse.json({})
   }
 }
