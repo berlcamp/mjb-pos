@@ -1,5 +1,5 @@
 'use client'
-import { Cog6ToothIcon, ComputerDesktopIcon, DocumentDuplicateIcon, FolderIcon, ListBulletIcon, UsersIcon } from '@heroicons/react/20/solid'
+import { Cog6ToothIcon, ComputerDesktopIcon, ListBulletIcon, UsersIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 const MainMenu: React.FC = () => {
@@ -10,17 +10,6 @@ const MainMenu: React.FC = () => {
         <div className='lg:flex lg:space-x-2 lg:space-y-0 space-y-2 justify-center lg:flex-row-reverse'>
           <div className='px-2 py-4 lg:w-96 border text-gray-600 rounded-lg bg-white shadow-md flex flex-col space-y-2'>
             {/* <div className='text-gray-700 text-lg font-semibold'>RDM</div> */}
-            {/* <Link href='/'>
-              <div className='app__menu_item'>
-                <div className='pt-1'>
-                  <HomeIcon className='w-8 h-8'/>
-                </div>
-                <div>
-                  <div className='app__menu_item_label'>Dashboard</div>
-                  <div className='app__menu_item_label_description'>Go to dashboard page.</div>
-                </div>
-              </div>
-            </Link> */}
             <Link href='/employees'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
@@ -28,18 +17,7 @@ const MainMenu: React.FC = () => {
                 </div>
                 <div>
                   <div className='app__menu_item_label'>Human Resource</div>
-                  <div className='app__menu_item_label_description'>Employees list.</div>
-                </div>
-              </div>
-            </Link>
-            <Link href='/employees'>
-              <div className='app__menu_item'>
-                <div className='pt-1'>
-                  <DocumentDuplicateIcon className='w-8 h-8'/>
-                </div>
-                <div>
-                  <div className='app__menu_item_label'>Payroll System</div>
-                  <div className='app__menu_item_label_description'>Attendance, DTR, Payslips.</div>
+                  <div className='app__menu_item_label_description'>Employees, Payroll.</div>
                 </div>
               </div>
             </Link>
@@ -49,8 +27,8 @@ const MainMenu: React.FC = () => {
                   <ListBulletIcon className='w-8 h-8'/>
                 </div>
                 <div>
-                  <div className='app__menu_item_label'>Supply and Material Management</div>
-                  <div className='app__menu_item_label_description'>Canvass, Inventory, Purchase Orders. </div>
+                  <div className='app__menu_item_label'>Canvass and Purchasing</div>
+                  <div className='app__menu_item_label_description'>Canvass, Purchase Orders. </div>
                 </div>
               </div>
             </Link>
@@ -61,11 +39,11 @@ const MainMenu: React.FC = () => {
                 </div>
                 <div>
                   <div className='app__menu_item_label'>Point of Sale</div>
-                  <div className='app__menu_item_label_description'>Customer Orders and Sales.</div>
+                  <div className='app__menu_item_label_description'>Sales and Product Inventory.</div>
                 </div>
               </div>
             </Link>
-            <Link href='/projects'>
+            {/* <Link href='/projects'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
                   <FolderIcon className='w-8 h-8'/>
@@ -75,11 +53,11 @@ const MainMenu: React.FC = () => {
                   <div className='app__menu_item_label_description'>Projects and Location Management.</div>
                 </div>
               </div>
-            </Link>
+            </Link> */}
             <div className='pt-4'>
               <hr/>
             </div>
-            <div className='text-gray-700 text-lg font-semibold'>System <span className='text-xs text-gray-500'>(Super Admin)</span></div>
+            <div className='text-gray-700 text-lg font-semibold'>Settings</div>
             <Link href='/settings/system'>
               <div className='app__menu_item'>
                 <div className='pt-1'>
@@ -87,18 +65,7 @@ const MainMenu: React.FC = () => {
                 </div>
                 <div>
                   <div className='app__menu_item_label'>System Settings</div>
-                  <div className='app__menu_item_label_description'>System Access and Permissions. </div>
-                </div>
-              </div>
-            </Link>
-            <Link href='/accounts'>
-              <div className='app__menu_item'>
-                <div className='pt-1'>
-                  <UsersIcon className='w-8 h-8'/>
-                </div>
-                <div>
-                  <div className='app__menu_item_label'>Login Account</div>
-                  <div className='app__menu_item_label_description'>User Login accounts. </div>
+                  <div className='app__menu_item_label_description'>System Permissions, Login Accounts. </div>
                 </div>
               </div>
             </Link>

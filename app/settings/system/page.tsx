@@ -89,13 +89,12 @@ const Page: React.FC = () => {
                 results && (
                   <>
                   <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='settings' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'settings') : []} title='Who can manage System Settings and Login Accounts'/>
-                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='employee_accounts' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'employee_accounts') : []} title='Who can manage Employee Accounts'/>
-                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='payroll' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'payroll') : []} title='Who can manage Payroll System'/>
-                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='inventory' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'inventory') : []} title='Who can manage Supply & Material Mgmt'/>
+                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='human_resource' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'human_resource') : []} title='Who can manage Human Resource'/>
+                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='canvass' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'canvass') : []} title='Who can create Price Canvass & Purchase Orders'/>
                   <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='approve_price_canvass' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'approve_price_canvass') : []} title='Who can Approve Price Canvass & Purchase Orders'/>
                   <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='manage_pos' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'manage_pos') : []} title='Who can manage Point of Sale'/>
                   <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='cashers' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'cashers') : []} title='Cashers of Point of Sale '/>
-                  <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='projects' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'projects') : []} title='Who can manage Projects'/>
+                  {/* <SelectUserNames handleManagerChange={handleManagerChange} multiple={true} type='projects' settingsData={Array.isArray(settingsData) ? settingsData.filter((item: settingsDataTypes) => item.access_type === 'projects') : []} title='Who can manage Projects'/> */}
                   </>
                 )
               }

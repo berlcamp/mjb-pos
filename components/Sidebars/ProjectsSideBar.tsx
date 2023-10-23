@@ -8,11 +8,12 @@ const ProjectsSideBar = () => {
 
   return (
     <>
-      <ul className="pt-8 mt-4 space-y-2 border-gray-700">
+      <div className='app__sidebar_header'>Projects & Locations</div>
+      <ul className="pt-4 mt-4 space-y-2 border-gray-700">
         <li>
           <div className='flex items-center text-gray-500 items-centers space-x-1 px-2'>
             <Cog6ToothIcon className='w-4 h-4'/>
-            <span>Projects & Location</span>
+            <span className='text-sm'>Projects & Location</span>
           </div>
         </li>
         <li>

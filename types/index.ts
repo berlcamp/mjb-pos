@@ -120,11 +120,18 @@ export interface SupplierTypes {
 
 export interface ProductTypes {
   id: string
-  name: string
+  uuid: string
+  description: string
   category_id: string
+  unit_id: string
+  available_stocks: string
+  quantity: number
+  price: string
+  total: number
   created_by: string
   rdt_users: AccountTypes
   rdt_product_categories: ProductCategoryTypes
+  rdt_product_units: ProductUnitTypes
   status: string
   org_id: string
 }
@@ -167,8 +174,7 @@ export interface SupplierPricesTypes {
 
 export interface CanvassItemTypes {
   id: string
-  product_id: string
-  rdt_products: ProductTypes
+  product_name: string
   canvas_id: string
   prices: SupplierPricesTypes[]
 }
@@ -200,10 +206,38 @@ export interface PurchaseOrderTypes {
 
 export interface PurchaseOrderItemTypes {
   id: string
-  product_id: string
-  rdt_products: ProductTypes
+  product_name: string
   purchase_order_id: string
   quantity: string
   price: string
   total: string
+}
+
+export interface SalesTypes {
+  id: string
+  product_id: string
+  rdt_products: ProductTypes
+  quantity: string
+  unit_price: string
+  total: string
+  sale_transaction_id: string
+  rdt_sale_transactions: TransactionTypes
+  casher_id: string
+  rdt_users: AccountTypes
+  status: string
+  created_at: string
+  transaction_date: string
+}
+
+export interface TransactionTypes {
+  id: string
+  customer_name: string
+  casher_id: string
+  rdt_users: AccountTypes
+  rdt_sales: SalesTypes[]
+  created_at: string
+  total: string
+  cash: string
+  status: string
+  transaction_date: string
 }

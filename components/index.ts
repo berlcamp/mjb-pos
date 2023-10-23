@@ -18,7 +18,6 @@ import AccountDetails from './AccountDetails'
 import SettingsSideBar from './Sidebars/SettingsSideBar'
 import EmployeesSideBar from './Sidebars/EmployeesSideBar'
 import ProjectsSideBar from './Sidebars/ProjectsSideBar'
-import InventorySideBar from './Sidebars/InventorySideBar'
 import OneColLayoutLoading from './Loading/OneColLayoutLoading'
 import ThreeColTableLoading from './Loading/ThreeColTableLoading'
 import TableRowLoading from './Loading/TableRowLoading'
@@ -38,7 +37,6 @@ export {
   SettingsSideBar,
   ProjectsSideBar,
   EmployeesSideBar,
-  InventorySideBar,
   PosSideBar,
   CustomButton,
   OneColLayoutLoading,

@@ -1,6 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-import type { AccountTypes, CanvassTypes, Employee, LocationTypes, ProductTypes, ProjectTypes, PurchaseOrderTypes, SupplierTypes, excludedItemsTypes } from '@/types'
+import type { excludedItemsTypes } from '@/types'
+import { format } from 'date-fns'
+import { fullTextQuery } from './text-helper'
+// import { fullTextQuery } from './text-helper'
 
 const supabase = createClientComponentClient()
 
@@ -21,6 +24,8 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -33,13 +38,11 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: Employee[] = userData
 
     return { data, count }
   } catch (error) {
@@ -76,13 +79,11 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: AccountTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -106,6 +107,8 @@ export async function fetchProjects (filters: { filterKeyword?: string, filterSt
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -118,13 +121,11 @@ export async function fetchProjects (filters: { filterKeyword?: string, filterSt
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: ProjectTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -148,6 +149,8 @@ export async function fetchLocations (filters: { filterKeyword?: string, filterS
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -160,13 +163,11 @@ export async function fetchLocations (filters: { filterKeyword?: string, filterS
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: LocationTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -190,6 +191,8 @@ export async function fetchSuppliers (filters: { filterKeyword?: string, filterS
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -202,13 +205,11 @@ export async function fetchSuppliers (filters: { filterKeyword?: string, filterS
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: SupplierTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -221,17 +222,21 @@ export async function fetchProducts (filters: { filterKeyword?: string, filterSt
   try {
     let query = supabase
       .from('rdt_products')
-      .select('*, rdt_users(name,avatar_url), rdt_product_categories(name)', { count: 'exact' })
+      .select('*, rdt_users(name,avatar_url), rdt_product_categories(name), rdt_product_units(name)', { count: 'exact' })
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      query = query.or(`name.ilike.%${filters.filterKeyword}%`)
+      const searchQuery: string = fullTextQuery(filters.filterKeyword)
+      query = query.textSearch('fts', searchQuery)
+      // query = query.or(`description.ilike.%${filters.filterKeyword}%`)
     }
 
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -244,13 +249,11 @@ export async function fetchProducts (filters: { filterKeyword?: string, filterSt
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: ProductTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -274,6 +277,8 @@ export async function fetchProductUnits (filters: { filterKeyword?: string, filt
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -314,6 +319,8 @@ export async function fetchProductCategories (filters: { filterKeyword?: string,
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
+    } else {
+      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -366,13 +373,11 @@ export async function fetchCanvass (filters: { filterKeyword?: string, filterSta
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
-
-    const data: CanvassTypes[] = userData
 
     return { data, count }
   } catch (error) {
@@ -408,13 +413,131 @@ export async function fetchPurchaseOrders (filters: { filterKeyword?: string, fi
     // Order By
     query = query.order('id', { ascending: false })
 
-    const { data: userData, error, count } = await query
+    const { data, error, count } = await query
 
     if (error) {
       throw new Error(error.message)
     }
 
-    const data: PurchaseOrderTypes[] = userData
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_sale_transactions')
+      .select('*, rdt_users(name,avatar_url), rdt_sales(*, rdt_products(description))', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.or(`customer_name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // filter date from
+    if (filters.filterDateFrom && filters.filterDateFrom !== '') {
+      const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+      query = query.gte('transaction_date', date)
+    }
+
+    // filter date to
+    if (filters.filterDateTo && filters.filterDateTo !== '') {
+      const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
+      query = query.lte('transaction_date', date)
+    }
+
+    // filter casher
+    if (filters.filterCasher && filters.filterCasher !== '') {
+      query = query.eq('casher_id', filters.filterCasher)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchSales (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_sales')
+      .select('*, rdt_users(name,avatar_url), rdt_products(description), rdt_sale_transactions(*)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      const { data: products } = await supabase.from('rdt_products').select('id').or(`description.ilike.%${filters.filterKeyword}%`)
+      const productIds: number[] = []
+      products?.forEach(product => {
+        productIds.push(product.id)
+      })
+
+      query = query.in('product_id', productIds)
+    }
+
+    // filter status
+    if (filters.filterStatus && filters.filterStatus !== '') {
+      query = query.eq('status', filters.filterStatus)
+    }
+
+    // filter date from
+    if (filters.filterDateFrom && filters.filterDateFrom !== '') {
+      const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+      query = query.gte('transaction_date', date)
+    }
+
+    // filter date to
+    if (filters.filterDateTo && filters.filterDateTo !== '') {
+      const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
+      query = query.lte('transaction_date', date)
+    }
+
+    // filter casher
+    if (filters.filterCasher && filters.filterCasher !== '') {
+      query = query.eq('casher_id', filters.filterCasher)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
 
     return { data, count }
   } catch (error) {

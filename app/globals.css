@@ -39,7 +39,7 @@
   @apply py-2 px-2 text-gray-900 align-top
 }
 .app__th_firstcol {
-  @apply py-2 pl-4 pr-2 text-gray-800 font-medium align-top
+  @apply py-2 pl-4 pr-2 text-gray-800 align-top
 }
 .app__td {
   @apply py-2 px-2 align-top font-normal
@@ -177,13 +177,13 @@
   @apply absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm
 }
 .app__filter_input {
-  @apply w-48 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
+  @apply w-32 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
 }
 .app__filter_date {
-  @apply w-32 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
+  @apply w-24 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-right inline-flex items-center dark:bg-gray-300
 }
 .app__filter_select {
-  @apply w-32 text-gray-500  focus:ring-0 focus:outline-none text-xs py-1 text-left inline-flex items-center dark:bg-gray-300
+  @apply w-24 text-gray-500 focus:ring-0 focus:outline-none text-xs py-1 text-right inline-flex items-center dark:bg-gray-300
 }
 .app__filter_container {
   @apply inline-flex items-center border border-gray-300 rounded-lg mr-1 px-2 py-1 bg-white dark:bg-gray-300
@@ -204,7 +204,7 @@
   @apply py-2 my-1 px-2 flex items-center space-x-2 cursor-pointer whitespace-nowrap rounded-lg hover:bg-gray-200
 }
 .app__menu_link {
-  @apply flex items-center p-2 text-sm font-light rounded-lg text-gray-300  hover:bg-gray-600
+  @apply flex items-center py-2 px-4 text-sm font-light rounded-lg text-gray-300  hover:bg-gray-600
 }
 .app_menu_link_active {
   @apply bg-gray-700
@@ -229,4 +229,7 @@
 }
 .app__status_container_orange {
   @apply font-medium text-orange-600 border px-1 py-px border-orange-400 bg-orange-100
+}
+.app__sidebar_header {
+  @apply text-center text-white border border-gray-500 bg-gray-600 mx-4
 }
