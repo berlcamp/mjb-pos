@@ -67,7 +67,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
         const { data, error } = await supabase
           .from('rdt_users')
           .select()
-          // .neq('email', 'berlcamp@gmail.com')
+          .neq('email', 'berlcamp@gmail.com')
           .eq('status', 'Active')
 
         if (error) throw new Error(error.message)
