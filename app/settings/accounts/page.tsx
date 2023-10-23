@@ -176,7 +176,7 @@ const Page: React.FC = () => {
           <div className='app__title'>
             <Title title='Login Accounts'/>
             {
-              (isDataEmpty || list.length < 2) &&
+              (isDataEmpty || list.length < 3) &&
                 <CustomButton
                   containerStyles='app__btn_green'
                   title='Add New Account'
@@ -194,8 +194,8 @@ const Page: React.FC = () => {
           </div>
 
           {
-            (!isDataEmpty && list.length > 1) &&
-              <div className='app__warning_text'><span className='app__warning_title'>Warning:</span> Maximum of 2 login accounts limit reach, you need to upgrade your account to create more login accounts.</div>
+            (!isDataEmpty && list.length === 3) &&
+              <div className='app__warning_text'><span className='app__warning_title'>Warning:</span> Maximum login account limit of 3 reached. You need to upgrade your account to create more login accounts.</div>
           }
 
           {/* Per Page */}
