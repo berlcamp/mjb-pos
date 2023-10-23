@@ -11,7 +11,10 @@ function TopBar () {
     //     <UserDropdown/>
     // </div>
     <div className='fixed top-0 right-0 z-20 p-2 flex items-center w-full bg-gray-50 shadow-md'>
-      <div className='flex-1 pl-72'>
+      <div className='flex-1'>
+        <div className='ml-14 lg:ml-64'>
+          <span className='ml-2 border border-gray-500 py-px px-1 font-medium'>{process.env.NEXT_PUBLIC_ORG_NAME}</span>
+        </div>
       </div>
       <div className='flex space-x-2'>
         <TopMenu darkMode={false}/>
