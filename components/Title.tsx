@@ -4,7 +4,7 @@ const Title = ({ title, subTitle }: { title: string, subTitle?: string }) => {
       <div className='flex items-start space-x-2'>
         <div>{ title }</div>
         {
-          subTitle && <div className='text-sm'>{ subTitle }</div>
+          subTitle && <div className='text-sm text-gray-500'>{ subTitle }</div>
         }
       </div>
     </div>

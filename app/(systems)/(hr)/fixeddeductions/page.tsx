@@ -1,16 +1,15 @@
 'use client'
 
-import { fetchProductUnits } from '@/utils/fetchApi'
+import { fetchFixedDeductions } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, UserBlock, ConfirmModal, PosSideBar, DeleteModal } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, EmployeesSideBar, Title, Unauthorized, CustomButton, DeleteModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
-import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { ProductUnitTypes } from '@/types'
+import type { FixedDeductionTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,17 +20,12 @@ import { ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/2
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
-  const [list, setList] = useState<ProductUnitTypes[]>([])
+  const [list, setList] = useState<FixedDeductionTypes[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
-  const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
-  const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
-  const [editData, setEditData] = useState<ProductUnitTypes | null>(null)
-
-  const [filterKeyword, setFilterKeyword] = useState<string>('')
-  const [filterStatus, setFilterStatus] = useState<string>('')
+  const [editData, setEditData] = useState<FixedDeductionTypes | null>(null)
 
   const [perPageCount, setPerPageCount] = useState<number>(10)
 
@@ -40,14 +34,14 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session, supabase } = useSupabase()
-  const { hasAccess, setToast } = useFilter()
+  const { session } = useSupabase()
+  const { hasAccess } = useFilter()
 
   const fetchData = async () => {
     setLoading(true)
 
     try {
-      const result = await fetchProductUnits({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchFixedDeductions(perPageCount, 0)
 
       // update the list in redux
       dispatch(updateList(result.data))
@@ -66,7 +60,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchProductUnits({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchFixedDeductions(perPageCount, list.length)
 
       // update the list in redux
       const newList = [...list, ...result.data]
@@ -86,7 +80,7 @@ const Page: React.FC = () => {
     setEditData(null)
   }
 
-  const handleEdit = (item: ProductUnitTypes) => {
+  const handleEdit = (item: FixedDeductionTypes) => {
     setShowAddModal(true)
     setEditData(item)
   }
@@ -94,60 +88,6 @@ const Page: React.FC = () => {
   const handleDelete = (id: string) => {
     setSelectedId(id)
     setShowDeleteModal(true)
-  }
-
-  const handleInactive = (id: string) => {
-    setSelectedId(id)
-    setShowConfirmInactiveModal(true)
-  }
-
-  const handleActive = (id: string) => {
-    setSelectedId(id)
-    setShowConfirmActiveModal(true)
-  }
-
-  const handleInactiveConfirmed = async () => {
-    try {
-      const { error } = await supabase
-        .from('rdt_product_units')
-        .update({ status: 'Archived' })
-        .eq('id', selectedId)
-
-      if (error) throw new Error(error.message)
-
-      // Update data in redux
-      const items = [...globallist]
-      const updatedList = items.filter(item => item.id !== selectedId)
-      dispatch(updateList(updatedList))
-
-      // pop up the success message
-      setToast('success', 'Successfully saved.')
-      setShowConfirmInactiveModal(false)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  const handleActiveConfirmed = async () => {
-    try {
-      const { error } = await supabase
-        .from('rdt_product_units')
-        .update({ status: 'Active' })
-        .eq('id', selectedId)
-
-      if (error) throw new Error(error.message)
-
-      // Update data in redux
-      const items = [...globallist]
-      const updatedList = items.filter(item => item.id !== selectedId)
-      dispatch(updateList(updatedList))
-
-      // pop up the success message
-      setToast('success', 'Successfully saved.')
-      setShowConfirmActiveModal(false)
-    } catch (e) {
-      console.error(e)
-    }
   }
 
   // Update list whenever list in redux updates
@@ -161,36 +101,29 @@ const Page: React.FC = () => {
     void fetchData()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKeyword, perPageCount, filterStatus])
+  }, [perPageCount])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('manage_pos') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('human_resource') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
 
   return (
     <>
     <Sidebar>
-      <PosSideBar/>
+      <EmployeesSideBar/>
     </Sidebar>
     <TopBar/>
     <div className="app__main">
       <div>
-          <div className='app__title'>
-            <Title title='Product Units'/>
+          <div className='app__title mb-10'>
+            <Title title='Fixed Deductions' subTitle='(ex. Rice allowance, etc.)'/>
             <CustomButton
               containerStyles='app__btn_green'
-              title='Add New Unit'
+              title='Add New Deduction'
               btnType='button'
               handleClick={handleAdd}
             />
-          </div>
-
-          {/* Filters */}
-          <div className='app__filters'>
-            <Filters
-              setFilterKeyword={setFilterKeyword}
-              setFilterStatus={setFilterStatus}/>
           </div>
 
           {/* Per Page */}
@@ -207,19 +140,16 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Unit
+                          Description
                       </th>
                       <th className="hidden md:table-cell app__th">
-                          Status
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Added By
+                          Amount
                       </th>
                   </tr>
               </thead>
               <tbody>
                 {
-                  !isDataEmpty && list.map((item: ProductUnitTypes) => (
+                  !isDataEmpty && list.map((item: FixedDeductionTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
@@ -261,28 +191,6 @@ const Page: React.FC = () => {
                                       <span>Delete</span>
                                     </div>
                                 </Menu.Item>
-                                <Menu.Item>
-                                  <div className='app__dropdown_item2'>
-                                  {
-                                    item.status === 'Active' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_orange_xs mt-2'
-                                          title='Move to archived'
-                                          btnType='button'
-                                          handleClick={() => handleInactive(item.id)}
-                                        />
-                                  }
-                                  {
-                                    item.status === 'Archived' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_green_xs mt-2'
-                                          title='Mark as Active'
-                                          btnType='button'
-                                          handleClick={() => handleActive(item.id)}
-                                        />
-                                  }
-                                  </div>
-                                </Menu.Item>
                               </div>
                             </Menu.Items>
                           </Transition>
@@ -291,37 +199,15 @@ const Page: React.FC = () => {
                       <th
                         className="app__th_firstcol">
                         {item.name}
-                        {/* Mobile View */}
-                        <div>
-                          <div className="md:hidden app__td_mobile">
-                            <div>
-                            {
-                              item.status === 'Archived'
-                                ? <span className='app__status_container_red'>Archived</span>
-                                : <span className='app__status_container_green'>Active</span>
-                            }
-                            </div>
-                          </div>
-                        </div>
-                        {/* End - Mobile View */}
-
                       </th>
                       <td
-                        className="hidden md:table-cell app__td">
-                        {
-                          item.status === 'Archived'
-                            ? <span className='app__status_container_red'>Archived</span>
-                            : <span className='app__status_container_green'>Active</span>
-                        }
-                      </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        <UserBlock user={item.rdt_users}/>
+                        className="app__td">
+                        { item.amount }
                       </td>
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={4} rows={2}/> }
+                { loading && <TableRowLoading cols={3} rows={2}/> }
               </tbody>
             </table>
             {
@@ -346,36 +232,12 @@ const Page: React.FC = () => {
           hideModal={() => setShowAddModal(false)}/>
       )
     }
-    {/* Confirm (Inactive) Modal */}
-    {
-      showConfirmInactiveModal && (
-        <ConfirmModal
-          header='Confirmation'
-          btnText='Confirm'
-          message="Please confirm this action"
-          onConfirm={handleInactiveConfirmed}
-          onCancel={() => setShowConfirmInactiveModal(false)}
-        />
-      )
-    }
-    {/* Confirm (Active) Modal */}
-    {
-      showConfirmActiveModal && (
-        <ConfirmModal
-          header='Confirmation'
-          btnText='Confirm'
-          message="Please confirm this action"
-          onConfirm={handleActiveConfirmed}
-          onCancel={() => setShowConfirmActiveModal(false)}
-        />
-      )
-    }
     {/* Delete Modal */}
     {
       showDeleteModal && (
         <DeleteModal
           id={selectedId}
-          table='rdt_product_units'
+          table='rdt_fixed_deductions'
           hideModal={() => setShowDeleteModal(false)}/>
       )
     }

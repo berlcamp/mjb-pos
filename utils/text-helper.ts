@@ -1,3 +1,5 @@
+import type { Employee } from '@/types'
+
 export function fullTextQuery (string: string): string {
   // const isStringAllNumbers = (str: string) => {
   //   return /^\d+$/.test(str)
@@ -39,4 +41,10 @@ export function generateReferenceCode () {
     counter += 1
   }
   return result
+}
+
+export function getCaBalance (item: Employee) {
+  const totalCashAdvance = item.rdt_cash_advances.reduce((accumulator, currentValue) => accumulator + Number(currentValue.amount), 0)
+  const totalPayrollDeduction = item.rdt_payroll_employees.reduce((accumulator, currentValue) => accumulator + Number(currentValue.ca_deduction), 0)
+  return totalCashAdvance - totalPayrollDeduction
 }

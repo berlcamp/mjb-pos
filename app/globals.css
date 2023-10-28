@@ -39,7 +39,7 @@
   @apply py-2 px-2 text-gray-900 align-top
 }
 .app__th_firstcol {
-  @apply py-2 pl-4 pr-2 text-gray-800 align-top
+  @apply py-2 pl-4 pr-2 font-normal align-top
 }
 .app__td {
   @apply py-2 px-2 align-top font-normal
@@ -103,6 +103,9 @@
 }
 .app__btn_gray_sm {
   @apply bg-gray-500 hover:bg-gray-600 border active:bg-gray-500 border-gray-600 font-bold px-2 py-1 text-sm text-white rounded-sm
+}
+.app__btn_gray_xs {
+  @apply bg-gray-500 hover:bg-gray-600 active:bg-gray-500 border border-gray-600 px-1 py-px text-xs text-white rounded-sm
 }
 .app__dialog_panel {
   @apply relative w-full max-w-lg max-h-[90vh] overflow-y-auto transform rounded-md bg-white p-4 text-left shadow-xl transition-all flex flex-col gap-5

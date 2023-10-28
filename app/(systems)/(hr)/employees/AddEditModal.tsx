@@ -4,7 +4,7 @@ import { useFilter } from '@/context/FilterContext'
 import { CustomButton, OneColLayoutLoading } from '@/components'
 
 // Types
-import type { AccountTypes, Employee } from '@/types'
+import type { DepartmentTypes, AccountTypes, Employee } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
@@ -21,6 +21,8 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
   const { setToast } = useFilter()
   const { supabase, session, systemUsers } = useSupabase()
   const [saving, setSaving] = useState(false)
+
+  const [departments, setDepartments] = useState<DepartmentTypes[] | []>([])
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
@@ -49,6 +51,9 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
         lastname: formdata.lastname,
         firstname: formdata.firstname,
         middlename: formdata.middlename,
+        position: formdata.position,
+        department_id: formdata.department_id,
+        rate: formdata.rate,
         status: 'Active',
         created_by: session.user.id,
         org_id: process.env.NEXT_PUBLIC_ORG_ID
@@ -63,7 +68,8 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
 
       // Append new data in redux
       const user: AccountTypes = systemUsers.find((user: AccountTypes) => user.id === session.user.id)
-      const updatedData = { ...newData, id: data[0].id, rdt_users: { name: user.name, avatar_url: user.avatar_url } }
+      const department: DepartmentTypes | undefined = departments.find((department: DepartmentTypes) => department.id.toString() === formdata.department_id)
+      const updatedData = { ...newData, id: data[0].id, rdt_departments: department, rdt_users: user }
       dispatch(updateList([updatedData, ...globallist]))
 
       // pop up the success message
@@ -90,7 +96,10 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     const newData = {
       lastname: formdata.lastname,
       firstname: formdata.firstname,
-      middlename: formdata.middlename
+      middlename: formdata.middlename,
+      position: formdata.position,
+      rate: formdata.rate,
+      department_id: formdata.department_id
     }
 
     try {
@@ -105,7 +114,8 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     } finally {
       // Update data in redux
       const items = [...globallist]
-      const updatedData = { ...newData, id: editData.id }
+      const department: DepartmentTypes | undefined = departments.find((department: DepartmentTypes) => department.id.toString() === formdata.department_id)
+      const updatedData = { ...newData, id: editData.id, rdt_departments: department }
       const foundIndex = items.findIndex(x => x.id === updatedData.id)
       items[foundIndex] = { ...items[foundIndex], ...updatedData }
       dispatch(updateList(items))
@@ -128,8 +138,26 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
     reset({
       lastname: editData ? editData.lastname : '',
       firstname: editData ? editData.firstname : '',
-      middlename: editData ? editData.middlename : ''
+      middlename: editData ? editData.middlename : '',
+      position: editData ? editData.position : '',
+      rate: editData ? editData.rate : ''
     })
+
+    // fetch departments
+    void (async () => {
+      const { data } = await supabase
+        .from('rdt_departments')
+        .select()
+        .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+      setDepartments(data)
+
+      // prepopulate category and units
+      reset({
+        department_id: editData ? editData.department_id : ''
+      })
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData, reset])
 
   return (
@@ -150,41 +178,85 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                 ? <>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Firstname</div>
+                        <div className='app__label_standard'>First Name</div>
                         <div>
                           <input
                             {...register('firstname', { required: true })}
                             type='text'
+                            placeholder='First Name'
                             className='app__select_standard'/>
-                          {errors.firstname && <div className='app__error_message'>Firstname is required</div>}
+                          {errors.firstname && <div className='app__error_message'>First Name is required</div>}
                         </div>
                       </div>
                     </div>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Middlename</div>
+                        <div className='app__label_standard'>Middle Name</div>
                         <div>
                           <input
                             {...register('middlename')}
                             type='text'
+                            placeholder='Middle Name'
                             className='app__select_standard'/>
                         </div>
                       </div>
                     </div>
                     <div className='app__form_field_container'>
                       <div className='w-full'>
-                        <div className='app__label_standard'>Lastname</div>
+                        <div className='app__label_standard'>Last Name</div>
                         <div>
                           <input
                             {...register('lastname', { required: true })}
                             type='text'
+                            placeholder='Last Name'
                             className='app__select_standard'/>
-                          {errors.lastname && <div className='app__error_message'>Lastname is required</div>}
+                          {errors.lastname && <div className='app__error_message'>Last Name is required</div>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Department</div>
+                        <div>
+                          <select
+                            {...register('department_id')}
+                            className='app__select_standard'>
+                              <option value=''>None</option>
+                              {
+                                departments.map((department: DepartmentTypes, index) => (
+                                  <option key={index} value={department.id}>{department.name}</option>
+                                ))
+                              }
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Position</div>
+                        <div>
+                          <input
+                            {...register('position')}
+                            type='text'
+                            placeholder='Position (optional)'
+                            className='app__select_standard'/>
+                        </div>
+                      </div>
+                    </div>
+                    <div className='app__form_field_container'>
+                      <div className='w-full'>
+                        <div className='app__label_standard'>Rate (per Day)</div>
+                        <div>
+                          <input
+                            {...register('rate', { required: true })}
+                            type='number'
+                            className='app__select_standard'/>
+                          {errors.rate && <div className='app__error_message'>Rate is required</div>}
                         </div>
                       </div>
                     </div>
                   </>
-                : <OneColLayoutLoading rows={3}/>
+                : <OneColLayoutLoading rows={4}/>
             }
             <div className="app__modal_footer">
                   <CustomButton

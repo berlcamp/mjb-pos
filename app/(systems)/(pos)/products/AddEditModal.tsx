@@ -196,6 +196,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                           <input
                             {...register('description', { required: true })}
                             type='text'
+                            placeholder='Product Description'
                             className='app__select_standard'/>
                           {errors.description && <div className='app__error_message'>Product Description is required</div>}
                         </div>
@@ -244,6 +245,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                           <input
                             {...register('price', { required: true })}
                             type='number'
+                            placeholder='Price per Unit'
                             step='any'
                             className='app__select_standard'/>
                           {errors.price && <div className='app__error_message'>Price is required</div>}
@@ -257,6 +259,7 @@ const AddEditModal = ({ hideModal, editData }: ModalProps) => {
                           <input
                             {...register('available_stocks', { required: true })}
                             type='number'
+                            placeholder='Available Stocks'
                             className='app__select_standard'/>
                           {errors.available_stocks && <div className='app__error_message'>Available Stocks is required</div>}
                         </div>

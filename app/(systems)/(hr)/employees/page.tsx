@@ -18,6 +18,7 @@ import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
 import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { getCaBalance } from '@/utils/text-helper'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -201,7 +202,16 @@ const Page: React.FC = () => {
                   <tr>
                       <th className="hidden md:table-cell app__th pl-4"></th>
                       <th className="hidden md:table-cell app__th">
-                          Name
+                          Employee
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Rate
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          CA Balance
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Department
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Status
@@ -243,7 +253,7 @@ const Page: React.FC = () => {
                                       className='app__dropdown_item'
                                     >
                                       <PencilSquareIcon className='w-4 h-4'/>
-                                      <span>Edit</span>
+                                      <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
                                 <Menu.Item>
@@ -251,7 +261,7 @@ const Page: React.FC = () => {
                                   {
                                     item.status === 'Active' &&
                                         <CustomButton
-                                          containerStyles='app__btn_red_xs'
+                                          containerStyles='app__btn_red_xs mt-2'
                                           title='Mark as Inactive'
                                           btnType='button'
                                           handleClick={() => handleInactive(item.id)}
@@ -260,7 +270,7 @@ const Page: React.FC = () => {
                                   {
                                     item.status === 'Inactive' &&
                                         <CustomButton
-                                          containerStyles='app__btn_green_xs'
+                                          containerStyles='app__btn_green_xs mt-2'
                                           title='Mark as Active'
                                           btnType='button'
                                           handleClick={() => handleActive(item.id)}
@@ -275,10 +285,13 @@ const Page: React.FC = () => {
                       </td>
                       <th
                         className="app__th_firstcol">
-                        {item.firstname} {item.middlename} {item.lastname}
+                        <div>{item.firstname} {item.middlename} {item.lastname}</div>
+                        <div className='text-xs text-gray-500'>{item.position}</div>
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
+                            <div>Rate: { item.rate }</div>
+                            <div>Department: { item.rdt_departments?.name }</div>
                             <div>
                             {
                               item.status === 'Inactive'
@@ -291,6 +304,18 @@ const Page: React.FC = () => {
                         {/* End - Mobile View */}
 
                       </th>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        { item.rate }
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        { getCaBalance(item) }
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        { item.rdt_departments?.name }
+                      </td>
                       <td
                         className="hidden md:table-cell app__td">
                         {
@@ -306,7 +331,7 @@ const Page: React.FC = () => {
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={5} rows={2}/> }
+                { loading && <TableRowLoading cols={7} rows={2}/> }
               </tbody>
             </table>
             {

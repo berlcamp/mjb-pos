@@ -313,7 +313,7 @@ export default function Page ({ params }: { params: { id: string } }) {
                                                 className='app__dropdown_item'
                                               >
                                                 <PencilSquareIcon className='w-4 h-4'/>
-                                                <span>Edit</span>
+                                                <span>Edit Details</span>
                                               </div>
                                           </Menu.Item>
                                           <Menu.Item>

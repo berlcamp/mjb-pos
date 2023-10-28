@@ -255,7 +255,7 @@ const Page: React.FC = () => {
                                       className='app__dropdown_item'
                                     >
                                       <PencilSquareIcon className='w-4 h-4'/>
-                                      <span>Edit</span>
+                                      <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
                                 <Menu.Item>
@@ -263,7 +263,7 @@ const Page: React.FC = () => {
                                   {
                                     item.status === 'Active' &&
                                         <CustomButton
-                                          containerStyles='app__btn_orange_xs'
+                                          containerStyles='app__btn_orange_xs mt-2'
                                           title='Move to archived'
                                           btnType='button'
                                           handleClick={() => handleInactive(item.id)}
@@ -272,7 +272,7 @@ const Page: React.FC = () => {
                                   {
                                     item.status === 'Archived' &&
                                         <CustomButton
-                                          containerStyles='app__btn_green_xs'
+                                          containerStyles='app__btn_green_xs mt-2'
                                           title='Mark as Active'
                                           btnType='button'
                                           handleClick={() => handleActive(item.id)}

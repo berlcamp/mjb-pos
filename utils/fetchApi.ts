@@ -11,21 +11,19 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
   try {
     let query = supabase
       .from('rdt_employees')
-      .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
+      .select('*, rdt_users(name,avatar_url), rdt_departments(id,name), rdt_cash_advances(amount), rdt_payroll_employees(*, rdt_payrolls(reference_code))', { count: 'exact' })
       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      // const searchQuery: string = fullTextQuery(filters.filterKeyword)
-      // query = query.textSearch('fts', searchQuery)
-      query = query.or(`firstname.ilike.%${filters.filterKeyword}%,middlename.ilike.%${filters.filterKeyword}%,lastname.ilike.%${filters.filterKeyword}%`)
+      const searchQuery: string = fullTextQuery(filters.filterKeyword)
+      query = query.textSearch('fts', searchQuery)
+      // query = query.or(`firstname.ilike.%${filters.filterKeyword}%,middlename.ilike.%${filters.filterKeyword}%,lastname.ilike.%${filters.filterKeyword}%`)
     }
 
     // filter status
     if (filters.filterStatus && filters.filterStatus !== '') {
       query = query.eq('status', filters.filterStatus)
-    } else {
-      query = query.eq('status', 'Active')
     }
 
     // Per Page from context
@@ -47,6 +45,114 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
     return { data, count }
   } catch (error) {
     console.error('fetch employee error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchDepartments (filters: { filterKeyword?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_departments')
+      .select('*', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      // const searchQuery: string = fullTextQuery(filters.filterKeyword)
+      // query = query.textSearch('fts', searchQuery)
+      query = query.or(`name.ilike.%${filters.filterKeyword}%`)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch employee error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchFixedDeductions (perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_fixed_deductions')
+      .select('*', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchCashAdvances (filters: { filterKeyword?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_cash_advances')
+      .select('*, rdt_users(name,avatar_url), rdt_employees(firstname,middlename,lastname)', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      const result = await fetchEmployees({ filterKeyword: filters.filterKeyword }, 9999, 0)
+      const ids: number[] = []
+      result.data.forEach(employee => {
+        ids.push(employee.id)
+      })
+
+      query = query.in('employee_id', ids)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
     return { data: [], count: 0 }
   }
 }
@@ -521,6 +627,49 @@ export async function fetchSales (filters: { filterKeyword?: string, filterStatu
     // filter casher
     if (filters.filterCasher && filters.filterCasher !== '') {
       query = query.eq('casher_id', filters.filterCasher)
+    }
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
+export async function fetchPayrolls (filters: { filterKeyword?: string, filterDate?: string }, perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('rdt_payrolls')
+      .select('*, rdt_users(name,avatar_url), rdt_payroll_employees(*, rdt_employees(*))', { count: 'exact' })
+      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+
+    // Search match
+    if (filters.filterKeyword && filters.filterKeyword !== '') {
+      query = query.eq('reference_code', filters.filterKeyword)
+    }
+
+    // filter date from
+    if (filters.filterDate && filters.filterDate !== '') {
+      const date = format(new Date(filters.filterDate), 'yyyy-MM-dd')
+      // console.log('date', date)
+      query = query.lte('from', date)
+      query = query.gte('to', date)
     }
 
     // Per Page from context
