@@ -9,7 +9,7 @@ import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { PayrollTypes } from '@/types'
+import type { PayrollEmployeeTypes, PayrollTypes } from '@/types'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
 
@@ -44,7 +44,7 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session } = useSupabase()
+  const { supabase, session } = useSupabase()
   const { hasAccess } = useFilter()
 
   const fetchData = async () => {
@@ -107,7 +107,7 @@ const Page: React.FC = () => {
   }
 
   // Generate payroll summary PDF
-  const handleGenerateSummary = (item: PayrollTypes) => {
+  const handleGenerateSummary = async (item: PayrollTypes) => {
     // Create a new jsPDF instance
     // eslint-disable-next-line new-cap
     const doc = new jsPDF({
@@ -116,7 +116,7 @@ const Page: React.FC = () => {
       format: 'a4'
     })
 
-    var pageWidth = doc.internal.pageSize.getWidth()
+    const pageWidth = doc.internal.pageSize.getWidth()
 
     // Add a header to the PDF
     const fontSize = 12
@@ -138,8 +138,13 @@ const Page: React.FC = () => {
     currentY += 20
 
     // Define your data for the table
-    const data = item.rdt_payroll_employees.map((employee) => {
-      const fullname = `${employee.rdt_employees.lastname} ${employee.rdt_employees.firstname} ${employee.rdt_employees.middlename}`
+    const { data: payrollEmployees } = await supabase
+      .from('rdt_payroll_employees')
+      .select('*, rdt_employees(*)')
+      .eq('payroll_id', item.id)
+
+    const data = payrollEmployees.map((employee: PayrollEmployeeTypes) => {
+      const fullname = `${employee.rdt_employees.lastname}, ${employee.rdt_employees.firstname} ${employee.rdt_employees.middlename}`
       return {
         name: fullname,
         days: employee.days,
@@ -280,7 +285,7 @@ const Page: React.FC = () => {
                                 </Menu.Item>
                                 <Menu.Item>
                                   <div
-                                      onClick={() => handleGenerateSummary(item)}
+                                      onClick={async () => await handleGenerateSummary(item)}
                                       className='app__dropdown_item'
                                     >
                                       <PrinterIcon className='w-4 h-4'/>

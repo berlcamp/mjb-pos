@@ -210,7 +210,7 @@ const Page: React.FC = () => {
                       </td>
                       <th
                         className="app__th_firstcol">
-                        {item.rdt_employees?.firstname} {item.rdt_employees?.middlename} {item.rdt_employees?.lastname}
+                        {item.rdt_employees?.lastname}, {item.rdt_employees?.firstname} {item.rdt_employees?.middlename}
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
