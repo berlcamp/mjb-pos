@@ -10,17 +10,19 @@ import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { PurchaseOrderTypes } from '@/types'
+import type { PurchaseOrderItemTypes, PurchaseOrderTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, ListBulletIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, PencilSquareIcon, PrinterIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import SupplySideBar from '@/components/Sidebars/SupplySideBar'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -39,7 +41,7 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session } = useSupabase()
+  const { supabase, session } = useSupabase()
   const { hasAccess } = useFilter()
 
   const fetchData = async () => {
@@ -88,6 +90,91 @@ const Page: React.FC = () => {
   const handleEdit = (item: PurchaseOrderTypes) => {
     setShowAddModal(true)
     setEditData(item)
+  }
+
+  // Generate payroll summary PDF
+  const handlePrintPo = async (item: PurchaseOrderTypes) => {
+    // Create a new jsPDF instance
+    // eslint-disable-next-line new-cap
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+
+    // Add a header to the PDF
+    const fontSize = 12
+    doc.setFontSize(fontSize)
+
+    const titleText = process.env.NEXT_PUBLIC_ORG_NAME ?? ''
+    const titleText2 = 'Purchase Order'
+    const titleText3 = `${format(new Date(item.date), 'MMMM dd, yyyy')}`
+    const titleWidth = doc.getStringUnitWidth(titleText) * fontSize / doc.internal.scaleFactor
+    const titleWidth2 = doc.getStringUnitWidth(titleText2) * 16 / doc.internal.scaleFactor // font size 16
+    const titleWidth3 = doc.getStringUnitWidth(titleText3) * fontSize / doc.internal.scaleFactor
+
+    let currentY = 20
+
+    doc.setFont('helvetica', 'bold')
+
+    doc.text(titleText, (pageWidth - titleWidth) / 2, currentY)
+    currentY += 15
+    doc.setFontSize(16)
+    doc.text(titleText2, (pageWidth - titleWidth2) / 2, currentY)
+    currentY += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(12)
+
+    doc.text(titleText3, (pageWidth - titleWidth3) / 2, currentY)
+    currentY += 20
+
+    doc.text(`Supplier: ${item.rdt_suppliers.name}`, 15, currentY)
+    currentY += 5
+
+    // Define your data for the table
+    const { data: poItems } = await supabase
+      .from('rdt_purchase_order_items')
+      .select()
+      .eq('purchase_order_id', item.id)
+
+    const data = poItems.map((product: PurchaseOrderItemTypes, index: number) => {
+      return {
+        item_no: index,
+        description: product.product_name,
+        quantity: Number(product.quantity).toLocaleString('en-US'),
+        unit_price: Number(product.price).toLocaleString('en-US'),
+        total: Number(product.total).toLocaleString('en-US')
+      }
+    })
+
+    const grossTotal = poItems.reduce((accumulator: number, item: PurchaseOrderItemTypes) => accumulator + Number(item.total), 0)
+
+    data.push({ unit_price: 'Total: ', total: grossTotal.toLocaleString('en-US') })
+
+    // Define the table columns
+    const columns = [
+      { header: 'Item #', dataKey: 'item_no' },
+      { header: 'Description', dataKey: 'description' },
+      { header: 'Quantity', dataKey: 'quantity' },
+      { header: 'Unit Price', dataKey: 'unit_price' },
+      { header: 'Total', dataKey: 'total' }
+    ]
+
+    const options = {
+      margin: { top: 20 },
+      startY: currentY,
+      headStyles: { fillColor: [252, 164, 96] } // Header cell background color (red)
+    }
+
+    // Create a new table object
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    doc.autoTable(columns, data, options)
+
+    // Save the PDF with a unique name
+    doc.save(`Purchase Order #${item.po_number}.pdf`)
   }
 
   // Update list whenever list in redux updates
@@ -161,6 +248,7 @@ const Page: React.FC = () => {
                       <th className="hidden md:table-cell app__th">
                           Status
                       </th>
+                      <th className="hidden md:table-cell app__th"></th>
                       <th className="hidden md:table-cell app__th">
                           Added By
                       </th>
@@ -202,10 +290,13 @@ const Page: React.FC = () => {
                                     </div>
                                 </Menu.Item>
                                 <Menu.Item>
-                                  <Link href={`/purchaseorders/${item.id}`} className='app__dropdown_item'>
-                                    <ListBulletIcon className='w-4 h-4'/>
-                                    <span>Manage Products</span>
-                                  </Link>
+                                  <div
+                                      onClick={async () => await handlePrintPo(item)}
+                                      className='app__dropdown_item'
+                                    >
+                                      <PrinterIcon className='w-4 h-4'/>
+                                      <span>Print P.O.</span>
+                                    </div>
                                 </Menu.Item>
                               </div>
                             </Menu.Items>
@@ -220,13 +311,12 @@ const Page: React.FC = () => {
                           <div className="md:hidden app__td_mobile">
                             <div>
                             {
-                              item.status === 'Inactive'
-                                ? <span className='app__status_container_red'>Inactive</span>
-                                : <span className='app__status_container_green'>Active</span>
+                              item.status === 'Pending approval'
+                                ? <span className='app__status_container_orange'>{item.status}</span>
+                                : <span className='app__status_container_green'>{item.status}</span>
                             }
                             </div>
                             <div><span className='app_td_mobile_label'>Description:</span> {item.description}</div>
-                            <div><Link href={`/canvass/${item.id}`} className='app__btn_green_xs'>View Items & Prices</Link></div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -251,6 +341,12 @@ const Page: React.FC = () => {
                             ? <span className='app__status_container_orange'>{item.status}</span>
                             : <span className='app__status_container_green'>{item.status}</span>
                         }
+                      </td>
+                      <td
+                        className="app__td">
+                        <Link href={`/purchaseorders/${item.id}`} className='app__btn_blue'>
+                          <span>Manage&nbsp;Items</span>
+                        </Link>
                       </td>
                       <td
                         className="hidden md:table-cell app__td">

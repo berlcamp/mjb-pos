@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, ListBulletIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import SupplySideBar from '@/components/Sidebars/SupplySideBar'
 
@@ -154,6 +154,7 @@ const Page: React.FC = () => {
                       <th className="hidden md:table-cell app__th">
                           Status
                       </th>
+                      <th className="hidden md:table-cell app__th"></th>
                       <th className="hidden md:table-cell app__th">
                           Added By
                       </th>
@@ -195,12 +196,6 @@ const Page: React.FC = () => {
                                       <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
-                                <Menu.Item>
-                                  <Link href={`/canvass/${item.id}`} className='app__dropdown_item'>
-                                    <ListBulletIcon className='w-4 h-4'/>
-                                    <span>Manage Products</span>
-                                  </Link>
-                                </Menu.Item>
                               </div>
                             </Menu.Items>
                           </Transition>
@@ -214,13 +209,12 @@ const Page: React.FC = () => {
                           <div className="md:hidden app__td_mobile">
                             <div>
                             {
-                              item.status === 'Inactive'
-                                ? <span className='app__status_container_red'>Inactive</span>
-                                : <span className='app__status_container_green'>Active</span>
+                              item.status === 'Pending approval'
+                                ? <span className='app__status_container_orange'>{item.status}</span>
+                                : <span className='app__status_container_green'>{item.status}</span>
                             }
                             </div>
                             <div><span className='app_td_mobile_label'>Description:</span> {item.description}</div>
-                            <div><Link href={`/canvass/${item.id}`} className='app__btn_green_xs'>View Items & Prices</Link></div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -237,6 +231,12 @@ const Page: React.FC = () => {
                             ? <span className='app__status_container_orange'>{item.status}</span>
                             : <span className='app__status_container_green'>{item.status}</span>
                         }
+                      </td>
+                      <td
+                        className="app__td">
+                        <Link href={`/canvass/${item.id}`} className='app__btn_blue'>
+                          <span>Manage&nbsp;Items</span>
+                        </Link>
                       </td>
                       <td
                         className="hidden md:table-cell app__td">

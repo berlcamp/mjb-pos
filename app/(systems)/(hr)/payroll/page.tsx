@@ -125,38 +125,63 @@ const Page: React.FC = () => {
     const titleText2 = 'Payroll Summary'
     const titleText3 = `${format(new Date(item.from), 'MMM dd, yyyy')} - ${format(new Date(item.to), 'MMM dd, yyyy')}`
     const titleWidth = doc.getStringUnitWidth(titleText) * fontSize / doc.internal.scaleFactor
-    const titleWidth2 = doc.getStringUnitWidth(titleText2) * fontSize / doc.internal.scaleFactor
+    const titleWidth2 = doc.getStringUnitWidth(titleText2) * 16 / doc.internal.scaleFactor // font size 16
     const titleWidth3 = doc.getStringUnitWidth(titleText3) * fontSize / doc.internal.scaleFactor
 
     let currentY = 20
+    doc.setFont('helvetica', 'bold')
 
     doc.text(titleText, (pageWidth - titleWidth) / 2, currentY)
-    currentY += 5
+    currentY += 15
+    doc.setFontSize(16)
     doc.text(titleText2, (pageWidth - titleWidth2) / 2, currentY)
-    currentY += 5
+    currentY += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(12)
     doc.text(titleText3, (pageWidth - titleWidth3) / 2, currentY)
-    currentY += 20
+    currentY += 15
 
     // Define your data for the table
     const { data: payrollEmployees } = await supabase
       .from('rdt_payroll_employees')
-      .select('*, rdt_employees(*)')
+      .select('*, rdt_employees(*, rdt_departments(name))')
       .eq('payroll_id', item.id)
+
+    payrollEmployees.sort((a: PayrollEmployeeTypes, b: PayrollEmployeeTypes) => {
+      const nameA = a.rdt_employees.lastname.toUpperCase()
+      const nameB = b.rdt_employees.lastname.toUpperCase()
+
+      if (nameA < nameB) {
+        return -1
+      } else if (nameA > nameB) {
+        return 1
+      } else {
+        return 0
+      }
+    })
 
     const data = payrollEmployees.map((employee: PayrollEmployeeTypes) => {
       const fullname = `${employee.rdt_employees.lastname}, ${employee.rdt_employees.firstname} ${employee.rdt_employees.middlename}`
       return {
         name: fullname,
+        department: employee.rdt_employees.rdt_departments.name,
         days: employee.days,
-        gross_pay: employee.gross_pay,
-        ca_deduction: employee.ca_deduction,
-        net_pay: employee.net_pay
+        gross_pay: Number(employee.gross_pay).toLocaleString('en-US'),
+        ca_deduction: Number(employee.ca_deduction).toLocaleString('en-US'),
+        net_pay: Number(employee.net_pay).toLocaleString('en-US')
       }
     })
+
+    const grossTotal = payrollEmployees.reduce((accumulator: number, item: PayrollEmployeeTypes) => accumulator + Number(item.gross_pay), 0)
+    const netTotal = payrollEmployees.reduce((accumulator: number, item: PayrollEmployeeTypes) => accumulator + Number(item.net_pay), 0)
+    const caDeductionTotal = payrollEmployees.reduce((accumulator: number, item: PayrollEmployeeTypes) => accumulator + Number(item.ca_deduction), 0)
+
+    data.push({ days: 'Total: ', gross_pay: grossTotal.toLocaleString('en-US'), ca_deduction: caDeductionTotal.toLocaleString('en-US'), net_pay: netTotal.toLocaleString('en-US') })
 
     // Define the table columns
     const columns = [
       { header: 'Name', dataKey: 'name' },
+      { header: 'Department', dataKey: 'department' },
       { header: 'Worked Days', dataKey: 'days' },
       { header: 'Gross Pay', dataKey: 'gross_pay' },
       { header: 'CA Deducation', dataKey: 'ca_deduction' },
