@@ -244,6 +244,8 @@ export interface TransactionTypes {
   created_at: string
   total: string
   cash: string
+  terms: string
+  payment_type: string
   status: string
   transaction_date: string
 }

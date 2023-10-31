@@ -10,7 +10,7 @@ interface FilterTypes {
 
 const statuses = [
   'Active',
-  'Archived'
+  'Inactive'
 ]
 
 const Filters = ({ setFilterKeyword, setFilterStatus }: FilterTypes) => {

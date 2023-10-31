@@ -3,7 +3,7 @@
 import { fetchProducts } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, UserBlock, ConfirmModal, PosSideBar } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, UserBlock, PosSideBar, DeleteModal, ConfirmModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
@@ -17,13 +17,14 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { ArchiveBoxXMarkIcon, CheckCircleIcon, ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [list, setList] = useState<ProductTypes[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
   const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
@@ -31,7 +32,6 @@ const Page: React.FC = () => {
 
   const [filterKeyword, setFilterKeyword] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
-
   const [perPageCount, setPerPageCount] = useState<number>(10)
 
   // Redux staff
@@ -39,7 +39,7 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session, supabase } = useSupabase()
+  const { supabase, session } = useSupabase()
   const { hasAccess, setToast } = useFilter()
 
   const fetchData = async () => {
@@ -90,6 +90,11 @@ const Page: React.FC = () => {
     setEditData(item)
   }
 
+  const handleDelete = (id: string) => {
+    setSelectedId(id)
+    setShowDeleteModal(true)
+  }
+
   const handleInactive = (id: string) => {
     setSelectedId(id)
     setShowConfirmInactiveModal(true)
@@ -104,7 +109,7 @@ const Page: React.FC = () => {
     try {
       const { error } = await supabase
         .from('rdt_products')
-        .update({ status: 'Archived' })
+        .update({ status: 'Inactive' })
         .eq('id', selectedId)
 
       if (error) throw new Error(error.message)
@@ -183,8 +188,8 @@ const Page: React.FC = () => {
           {/* Filters */}
           <div className='app__filters'>
             <Filters
-              setFilterKeyword={setFilterKeyword}
-              setFilterStatus={setFilterStatus}/>
+              setFilterStatus={setFilterStatus}
+              setFilterKeyword={setFilterKeyword}/>
           </div>
 
           {/* Per Page */}
@@ -250,34 +255,33 @@ const Page: React.FC = () => {
                             <Menu.Items className="app__dropdown_items">
                               <div className="py-1">
                                 <Menu.Item>
-                                  <div
-                                      onClick={() => handleEdit(item)}
-                                      className='app__dropdown_item'
-                                    >
+                                  <div onClick={() => handleEdit(item)} className='app__dropdown_item'>
                                       <PencilSquareIcon className='w-4 h-4'/>
                                       <span>Edit Details</span>
-                                    </div>
+                                  </div>
                                 </Menu.Item>
+                                {
+                                  item.status === 'Active' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleInactive(item.id)} className='app__dropdown_item'>
+                                        <ArchiveBoxXMarkIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-red-500 font-medium'>Inactive</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
+                                {
+                                  item.status === 'Inactive' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleActive(item.id)} className='app__dropdown_item'>
+                                        <CheckCircleIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-green-500 font-medium'>Active</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
                                 <Menu.Item>
-                                  <div className='app__dropdown_item2'>
-                                  {
-                                    item.status === 'Active' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_orange_xs mt-2'
-                                          title='Move to archived'
-                                          btnType='button'
-                                          handleClick={() => handleInactive(item.id)}
-                                        />
-                                  }
-                                  {
-                                    item.status === 'Archived' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_green_xs mt-2'
-                                          title='Mark as Active'
-                                          btnType='button'
-                                          handleClick={() => handleActive(item.id)}
-                                        />
-                                  }
+                                  <div onClick={ () => handleDelete(item.id) } className='app__dropdown_item'>
+                                    <TrashIcon className='w-4 h-4'/>
+                                    <span>Delete</span>
                                   </div>
                                 </Menu.Item>
                               </div>
@@ -323,8 +327,8 @@ const Page: React.FC = () => {
                       <td
                         className="hidden md:table-cell app__td">
                         {
-                          item.status === 'Archived'
-                            ? <span className='app__status_container_red'>Archived</span>
+                          item.status === 'Inactive'
+                            ? <span className='app__status_container_red'>Inactive</span>
                             : <span className='app__status_container_green'>Active</span>
                         }
                       </td>
@@ -358,6 +362,15 @@ const Page: React.FC = () => {
         <AddEditModal
           editData={editData}
           hideModal={() => setShowAddModal(false)}/>
+      )
+    }
+    {/* Delete Modal */}
+    {
+      showDeleteModal && (
+        <DeleteModal
+          id={selectedId}
+          table='rdt_products'
+          hideModal={() => setShowDeleteModal(false)}/>
       )
     }
     {/* Confirm (Inactive) Modal */}

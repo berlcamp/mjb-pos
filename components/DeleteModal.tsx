@@ -22,6 +22,7 @@ const DeleteModal = ({ hideModal, id, table, updateRedux = true }: ModalProps) =
   const { setToast } = useFilter()
   const { supabase } = useSupabase()
   const [deleting, setDeleting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -42,9 +43,7 @@ const DeleteModal = ({ hideModal, id, table, updateRedux = true }: ModalProps) =
         .eq('id', id)
 
       if (error) throw new Error(error.message)
-    } catch (e) {
-      console.error(e)
-    } finally {
+
       // Update data in redux
       const items = [...globallist]
       const updatedList = items.filter(item => item.id !== id)
@@ -60,6 +59,8 @@ const DeleteModal = ({ hideModal, id, table, updateRedux = true }: ModalProps) =
 
       // hide the modal
       hideModal()
+    } catch (e) {
+      setErrorMessage('This record cannot be deleted.')
     }
   }
 
@@ -86,31 +87,39 @@ const DeleteModal = ({ hideModal, id, table, updateRedux = true }: ModalProps) =
           <div className="app__modal_wrapper3">
             <div className="app__modal_header">
               <h5 className="app__modal_header_text">
-                Confirm Delete
+                Delete Confirmation
               </h5>
-              <button disabled={deleting} onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
+              <button onClick={hideModal} type="button" className="app__modal_header_btn">&times;</button>
             </div>
 
             <div className="app__modal_body">
-              <div className='text-gray-700 text-sm py-4'>
-                Are you sure you want to delete this?
-              </div>
-              <div className="app__modal_footer">
-                <CustomButton
-                  handleClick={handleDelete}
-                  btnType='button'
-                  isDisabled={deleting}
-                  title={deleting ? 'Deleting...' : 'Delete'}
-                  containerStyles="app__btn_green_sm"
-                />
-                <CustomButton
-                  handleClick={hideModal}
-                  btnType='button'
-                  isDisabled={deleting}
-                  title='Cancel'
-                  containerStyles="app__btn_gray_sm"
-                />
-              </div>
+              {
+                errorMessage !== ''
+                  ? <div>
+                      <div className='text-sm text-red-600'>{errorMessage}</div>
+                    </div>
+                  : <div>
+                      <div className='text-gray-700 text-sm py-4'>
+                        Are you sure you want to delete this?
+                      </div>
+                      <div className="app__modal_footer">
+                        <CustomButton
+                          handleClick={handleDelete}
+                          btnType='button'
+                          isDisabled={deleting}
+                          title={deleting ? 'Deleting...' : 'Delete'}
+                          containerStyles="app__btn_green_sm"
+                        />
+                        <CustomButton
+                          handleClick={hideModal}
+                          btnType='button'
+                          isDisabled={deleting}
+                          title='Cancel'
+                          containerStyles="app__btn_gray_sm"
+                        />
+                      </div>
+                    </div>
+              }
             </div>
           </div>
         </div>

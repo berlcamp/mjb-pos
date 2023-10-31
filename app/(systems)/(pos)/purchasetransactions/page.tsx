@@ -2,21 +2,21 @@
 
 import { fetchSaleTransactions } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, UserBlock, PosSideBar } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, UserBlock, PosSideBar, CustomButton, ConfirmModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
 // Types
-import type { SalesTypes, TransactionTypes } from '@/types'
+import type { ProductTypes, SalesTypes, TransactionTypes } from '@/types'
 
 // Redux imports
 import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import { Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon, TruckIcon } from '@heroicons/react/20/solid'
+import { ChevronDownIcon, TrashIcon, TruckIcon } from '@heroicons/react/20/solid'
 import { format } from 'date-fns'
 import ProductsModal from './ProductsModal'
 
@@ -29,8 +29,11 @@ const Page: React.FC = () => {
   const [filterCasher, setFilterCasher] = useState<string>('')
   const [filterDateFrom, setFilterDateFrom] = useState<string>('')
   const [filterDateTo, setFilterDateTo] = useState<string>('')
+  const [filterPaymentType, setFilterPaymentType] = useState<string>('')
 
   const [showProductsModal, setShowProductsModal] = useState(false)
+  const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false)
+  const [selectedId, setSelectedId] = useState<string>('')
   const [sales, setSales] = useState<SalesTypes[] | []>([])
 
   const [perPageCount, setPerPageCount] = useState<number>(10)
@@ -43,14 +46,14 @@ const Page: React.FC = () => {
   const resultsCounter = useSelector((state: any) => state.results.value)
   const dispatch = useDispatch()
 
-  const { session } = useSupabase()
-  const { hasAccess } = useFilter()
+  const { supabase, session } = useSupabase()
+  const { setToast, hasAccess } = useFilter()
 
   const fetchData = async () => {
     setLoading(true)
 
     try {
-      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, perPageCount, 0)
+      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher, filterPaymentType }, perPageCount, 0)
 
       // update the list in redux
       dispatch(updateList(result.data))
@@ -59,8 +62,14 @@ const Page: React.FC = () => {
       dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
 
       // summary
-      const summary = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, 99999, 0)
-      const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => accumulator + Number(sale.total), 0) // get the sum of total price
+      const summary = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher, filterPaymentType }, 99999, 0)
+      const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => {
+        if (sale.status !== 'Cancelled') {
+          return accumulator + Number(sale.total)
+        } else {
+          return accumulator
+        }
+      }, 0) // get the sum of total price
       setTotalSales(salesTotal)
     } catch (e) {
       console.error(e)
@@ -95,6 +104,71 @@ const Page: React.FC = () => {
     setShowProductsModal(true)
   }
 
+  const handleCancel = (id: string) => {
+    setSelectedId(id)
+    setShowConfirmCancelModal(true)
+  }
+
+  const handleCancelConfirmed = async () => {
+    try {
+      // update purchase transaction status to "Cancelled"
+      const { error } = await supabase
+        .from('rdt_sale_transactions')
+        .update({ status: 'Cancelled' })
+        .eq('id', selectedId)
+
+      if (error) throw new Error(error.message)
+
+      // return the product stocks
+      const { data: sales, error: error2 } = await supabase
+        .from('rdt_sales')
+        .update({ status: 'Cancelled' })
+        .eq('sale_transaction_id', selectedId)
+        .select()
+
+      if (error2) throw new Error(error2.message)
+
+      const productIds: string[] = []
+      sales.forEach((product: SalesTypes) => {
+        productIds.push(product.product_id)
+      })
+
+      const { data: products, error: error3 } = await supabase
+        .from('rdt_products')
+        .select()
+        .in('id', productIds)
+
+      if (error3) throw new Error(error3.message)
+
+      // create upsert array to update product stocks
+      const upsertData = products.map((product: ProductTypes) => {
+        const p: SalesTypes = sales.find((s: SalesTypes) => s.product_id === product.id)
+        const stocks = Number(product.available_stocks) + Number(p.quantity)
+        return { id: product.id, available_stocks: stocks }
+      })
+
+      // update the product stocks in the database
+      const { error4 } = await supabase
+        .from('rdt_products')
+        .upsert(upsertData)
+
+      if (error4) throw new Error(error4.message)
+
+      // Update data in redux
+      const items = [...globallist]
+      const updatedData = { status: 'Cancelled', id: selectedId }
+      const foundIndex = items.findIndex(x => x.id === updatedData.id)
+      items[foundIndex] = { ...items[foundIndex], ...updatedData }
+      dispatch(updateList(items))
+
+      // pop up the success message
+      setToast('success', 'Successfully cancelled.')
+      setShowConfirmCancelModal(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   // Update list whenever list in redux updates
   useEffect(() => {
     setList(globallist)
@@ -106,7 +180,7 @@ const Page: React.FC = () => {
     void fetchData()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKeyword, perPageCount, filterDateFrom, filterDateTo, filterStatus, filterCasher])
+  }, [filterKeyword, perPageCount, filterDateFrom, filterDateTo, filterStatus, filterCasher, filterPaymentType])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
@@ -132,6 +206,7 @@ const Page: React.FC = () => {
               setFilterDateFrom={setFilterDateFrom}
               setFilterDateTo={setFilterDateTo}
               setFilterStatus={setFilterStatus}
+              setFilterPaymentType={setFilterPaymentType}
               setFilterCasher={setFilterCasher}/>
           </div>
 
@@ -158,6 +233,12 @@ const Page: React.FC = () => {
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Date
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Status
+                      </th>
+                      <th className="hidden md:table-cell app__th">
+                          Payment Type
                       </th>
                       <th className="hidden md:table-cell app__th">
                           Cash
@@ -208,6 +289,15 @@ const Page: React.FC = () => {
                                       <span>View Products Purchased</span>
                                     </div>
                                 </Menu.Item>
+                                {
+                                  item.status !== 'Cancelled' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleCancel(item.id)} className='app__dropdown_item'>
+                                        <TrashIcon className='w-4 h-4'/>
+                                        <span className='text-red-500 font-medium'>Cancel this Transaction</span>
+                                      </div>
+                                    </Menu.Item>
+                                }
                               </div>
                             </Menu.Items>
                           </Transition>
@@ -219,7 +309,26 @@ const Page: React.FC = () => {
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
-                            <div>asdf</div>
+                            <div>Date: {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}</div>
+                            <div>Payment Type: {item.payment_type === 'cash' && <span>Cash</span>}
+                              {item.payment_type === 'credit' && <span>Credit ({item.terms} days)</span>}
+                            </div>
+                            <div>Total: {Number(item.total).toLocaleString('en-US')}</div>
+                            <div>Cash: {item.payment_type === 'cash' && <span>{Number(item.cash).toLocaleString('en-US')}</span>}</div>
+                            <div>Change: {item.payment_type === 'cash' && <span>{(Number(item.cash) - Number(item.total)).toLocaleString('en-US')}</span>}</div>
+                            <div>
+                              {
+                                item.status === 'Cancelled' && <span className='app__status_container_red'>Cancelled</span>
+                              }
+                            </div>
+                            <div>
+                              <CustomButton
+                                containerStyles='app__btn_red_xs mt-2'
+                                title='Cancel Transaction'
+                                btnType='button'
+                                handleClick={() => handleCancel(item.id)}
+                              />
+                            </div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -232,11 +341,30 @@ const Page: React.FC = () => {
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
-                        {item.cash}
+                        {
+                          item.status === 'Cancelled' && <span className='app__status_container_red'>Cancelled</span>
+                        }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
-                        {Number(item.cash) - Number(item.total)}
+                        {
+                          item.payment_type === 'cash' && <span>Cash</span>
+                        }
+                        {
+                          item.payment_type === 'credit' && <span>Credit ({item.terms} days)</span>
+                        }
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        {
+                          item.payment_type === 'cash' && <span>{Number(item.cash).toLocaleString('en-US')}</span>
+                        }
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        {
+                          item.payment_type === 'cash' && <span>{(Number(item.cash) - Number(item.total)).toLocaleString('en-US')}</span>
+                        }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
@@ -249,7 +377,7 @@ const Page: React.FC = () => {
                     </tr>
                   ))
                 }
-                { loading && <TableRowLoading cols={7} rows={2}/> }
+                { loading && <TableRowLoading cols={9} rows={2}/> }
               </tbody>
             </table>
             {
@@ -272,6 +400,18 @@ const Page: React.FC = () => {
         <ProductsModal
           sales={sales}
           hideModal={() => setShowProductsModal(false)}/>
+      )
+    }
+    {/* Confirm Cancel Modal */}
+    {
+      showConfirmCancelModal && (
+        <ConfirmModal
+          header='Confirmation'
+          btnText='Confirm'
+          message="All purchased product will be returned, please confirm this action; it cannot be undone."
+          onConfirm={handleCancelConfirmed}
+          onCancel={() => setShowConfirmCancelModal(false)}
+        />
       )
     }
   </>

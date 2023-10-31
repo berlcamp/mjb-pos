@@ -150,6 +150,9 @@ const Page: React.FC = () => {
                           Date
                       </th>
                       <th className="hidden md:table-cell app__th">
+                          Status
+                      </th>
+                      <th className="hidden md:table-cell app__th">
                           Price
                       </th>
                       <th className="hidden md:table-cell app__th">
@@ -175,7 +178,11 @@ const Page: React.FC = () => {
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
-                            <div>asdf</div>
+                            <div>Date: {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}</div>
+                            <div>Price: {Number(item.unit_price).toLocaleString('en-US')}</div>
+                            <div>Quantity: {Number(item.quantity).toLocaleString('en-US')}</div>
+                            <div>Total: {Number(item.total).toLocaleString('en-US')}</div>
+                            <div>{item.status === 'Cancelled' && <span className='app__status_container_red'>Cancelled</span>}</div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
@@ -185,6 +192,12 @@ const Page: React.FC = () => {
                       <td
                         className="hidden md:table-cell app__td">
                         {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}
+                      </td>
+                      <td
+                        className="hidden md:table-cell app__td">
+                        {
+                          item.status === 'Cancelled' && <span className='app__status_container_red'>Cancelled</span>
+                        }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">

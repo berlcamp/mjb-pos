@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid'
+import { ArchiveBoxXMarkIcon, CheckCircleIcon, ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -110,7 +110,7 @@ const Page: React.FC = () => {
     try {
       const { error } = await supabase
         .from('rdt_product_categories')
-        .update({ status: 'Archived' })
+        .update({ status: 'Inactive' })
         .eq('id', selectedId)
 
       if (error) throw new Error(error.message)
@@ -252,6 +252,24 @@ const Page: React.FC = () => {
                                       <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
+                                {
+                                  item.status === 'Active' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleInactive(item.id)} className='app__dropdown_item'>
+                                        <ArchiveBoxXMarkIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-red-500 font-medium'>Inactive</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
+                                {
+                                  item.status === 'Inactive' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleActive(item.id)} className='app__dropdown_item'>
+                                        <CheckCircleIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-green-500 font-medium'>Active</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
                                 <Menu.Item>
                                   <div
                                       onClick={ () => handleDelete(item.id) }
@@ -260,28 +278,6 @@ const Page: React.FC = () => {
                                       <TrashIcon className='w-4 h-4'/>
                                       <span>Delete</span>
                                     </div>
-                                </Menu.Item>
-                                <Menu.Item>
-                                  <div className='app__dropdown_item2'>
-                                  {
-                                    item.status === 'Active' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_orange_xs mt-2'
-                                          title='Move to archived'
-                                          btnType='button'
-                                          handleClick={() => handleInactive(item.id)}
-                                        />
-                                  }
-                                  {
-                                    item.status === 'Archived' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_green_xs mt-2'
-                                          title='Mark as Active'
-                                          btnType='button'
-                                          handleClick={() => handleActive(item.id)}
-                                        />
-                                  }
-                                  </div>
                                 </Menu.Item>
                               </div>
                             </Menu.Items>
@@ -296,8 +292,8 @@ const Page: React.FC = () => {
                           <div className="md:hidden app__td_mobile">
                             <div>
                             {
-                              item.status === 'Archived'
-                                ? <span className='app__status_container_red'>Archived</span>
+                              item.status === 'Inactive'
+                                ? <span className='app__status_container_red'>Inactive</span>
                                 : <span className='app__status_container_green'>Active</span>
                             }
                             </div>
@@ -309,8 +305,8 @@ const Page: React.FC = () => {
                       <td
                         className="hidden md:table-cell app__td">
                         {
-                          item.status === 'Archived'
-                            ? <span className='app__status_container_red'>Archived</span>
+                          item.status === 'Inactive'
+                            ? <span className='app__status_container_red'>Inactive</span>
                             : <span className='app__status_container_green'>Active</span>
                         }
                       </td>

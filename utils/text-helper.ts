@@ -44,7 +44,7 @@ export function generateReferenceCode () {
 }
 
 export function getCaBalance (item: Employee) {
-  const totalCashAdvance = item.rdt_cash_advances.reduce((accumulator, currentValue) => accumulator + Number(currentValue.amount), 0)
-  const totalPayrollDeduction = item.rdt_payroll_employees.reduce((accumulator, currentValue) => accumulator + Number(currentValue.ca_deduction), 0)
+  const totalCashAdvance = item.rdt_cash_advances ? item.rdt_cash_advances.reduce((accumulator, currentValue) => accumulator + Number(currentValue.amount), 0) : 0
+  const totalPayrollDeduction = item.rdt_payroll_employees ? item.rdt_payroll_employees.reduce((accumulator, currentValue) => accumulator + Number(currentValue.ca_deduction), 0) : 0
   return totalCashAdvance - totalPayrollDeduction
 }

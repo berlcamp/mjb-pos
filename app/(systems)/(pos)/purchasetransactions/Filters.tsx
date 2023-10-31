@@ -9,21 +9,23 @@ interface FilterTypes {
   setFilterDateFrom: (date: string) => void
   setFilterDateTo: (date: string) => void
   setFilterCasher: (casher: string) => void
+  setFilterPaymentType: (type: string) => void
 }
 
-const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilterDateTo, setFilterCasher }: FilterTypes) => {
+const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilterDateTo, setFilterCasher, setFilterPaymentType }: FilterTypes) => {
   const [keyword, setKeyword] = useState<string>('')
   const [status, setStatus] = useState<string>('')
   const [dateFrom, setDateFrom] = useState<string>('')
   const [dateTo, setDateTo] = useState<string>('')
   const [casher, setCasher] = useState<string>('')
+  const [paymentType, setPaymentType] = useState<string>('')
 
   const [cashers, setCashers] = useState<AccountTypes[] | []>([])
 
   const { supabase } = useSupabase()
 
   const handleApply = () => {
-    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '') return
+    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '' && paymentType === '') return
 
     // pass filter values to parent
     setFilterKeyword(keyword)
@@ -31,12 +33,13 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
     setFilterDateFrom(dateFrom)
     setFilterDateTo(dateTo)
     setFilterCasher(casher)
+    setFilterPaymentType(paymentType)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '') return
+    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '' && paymentType === '') return
 
     // pass filter values to parent
     setFilterKeyword(keyword)
@@ -44,6 +47,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
     setFilterDateFrom(dateFrom)
     setFilterDateTo(dateTo)
     setFilterCasher(casher)
+    setFilterPaymentType(paymentType)
   }
 
   // clear all filters
@@ -58,6 +62,8 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
     setDateTo('')
     setFilterCasher('')
     setCasher('')
+    setFilterPaymentType('')
+    setPaymentType('')
   }
 
   useEffect(() => {
@@ -67,7 +73,8 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
         const { data, error } = await supabase
           .from('rdt_users')
           .select()
-          // .neq('email', 'berlcamp@gmail.com')
+          .neq('email', 'berlcamp@gmail.com')
+          .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
           .eq('status', 'Active')
 
         if (error) throw new Error(error.message)
@@ -116,6 +123,17 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
               className="app__filter_select">
                 <option>All</option>
                 <option>Cancelled</option>
+            </select>
+          </div>
+          <div className='app__filter_container'>
+            <span className='text-xs text-gray-600'>Payment Type:</span>
+            <select
+              value={paymentType}
+              onChange={e => setPaymentType(e.target.value)}
+              className="app__filter_select">
+                <option value=''>All</option>
+                <option value='cash'>Cash</option>
+                <option value='credit'>Credit</option>
             </select>
           </div>
           <div className='app__filter_container'>

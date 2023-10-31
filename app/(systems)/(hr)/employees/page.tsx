@@ -3,7 +3,7 @@
 import { fetchEmployees } from '@/utils/fetchApi'
 import React, { Fragment, useEffect, useState } from 'react'
 import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, EmployeesSideBar, Title, Unauthorized, CustomButton, UserBlock, ConfirmModal } from '@/components'
+import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, EmployeesSideBar, Title, Unauthorized, CustomButton, UserBlock, ConfirmModal, DeleteModal } from '@/components'
 import uuid from 'react-uuid'
 import { superAdmins } from '@/constants'
 import Filters from './Filters'
@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { ArchiveBoxXMarkIcon, CheckCircleIcon, ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid'
 import { getCaBalance } from '@/utils/text-helper'
 
 const Page: React.FC = () => {
@@ -25,6 +25,7 @@ const Page: React.FC = () => {
   const [list, setList] = useState<Employee[]>([])
 
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
   const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
@@ -89,6 +90,11 @@ const Page: React.FC = () => {
   const handleEdit = (item: Employee) => {
     setShowAddModal(true)
     setEditData(item)
+  }
+
+  const handleDelete = (id: string) => {
+    setSelectedId(id)
+    setShowDeleteModal(true)
   }
 
   const handleInactive = (id: string) => {
@@ -256,26 +262,28 @@ const Page: React.FC = () => {
                                       <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
+                                {
+                                  item.status === 'Active' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleInactive(item.id)} className='app__dropdown_item'>
+                                        <ArchiveBoxXMarkIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-red-500 font-medium'>Inactive</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
+                                {
+                                  item.status === 'Inactive' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleActive(item.id)} className='app__dropdown_item'>
+                                        <CheckCircleIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-green-500 font-medium'>Active</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
                                 <Menu.Item>
-                                  <div className='app__dropdown_item2'>
-                                  {
-                                    item.status === 'Active' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_red_xs mt-2'
-                                          title='Mark as Inactive'
-                                          btnType='button'
-                                          handleClick={() => handleInactive(item.id)}
-                                        />
-                                  }
-                                  {
-                                    item.status === 'Inactive' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_green_xs mt-2'
-                                          title='Mark as Active'
-                                          btnType='button'
-                                          handleClick={() => handleActive(item.id)}
-                                        />
-                                  }
+                                  <div onClick={ () => handleDelete(item.id) } className='app__dropdown_item'>
+                                    <TrashIcon className='w-4 h-4'/>
+                                    <span>Delete</span>
                                   </div>
                                 </Menu.Item>
                               </div>
@@ -354,6 +362,15 @@ const Page: React.FC = () => {
         <AddEditModal
           editData={editData}
           hideModal={() => setShowAddModal(false)}/>
+      )
+    }
+    {/* Delete Modal */}
+    {
+      showDeleteModal && (
+        <DeleteModal
+          id={selectedId}
+          table='rdt_employees'
+          hideModal={() => setShowDeleteModal(false)}/>
       )
     }
     {/* Confirm (Inactive) Modal */}

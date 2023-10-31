@@ -17,7 +17,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
+import { ArchiveBoxXMarkIcon, CheckCircleIcon, ChevronDownIcon, PencilSquareIcon } from '@heroicons/react/20/solid'
 import SupplySideBar from '@/components/Sidebars/SupplySideBar'
 
 const Page: React.FC = () => {
@@ -251,28 +251,24 @@ const Page: React.FC = () => {
                                       <span>Edit Details</span>
                                     </div>
                                 </Menu.Item>
-                                <Menu.Item>
-                                  <div className='app__dropdown_item2'>
-                                  {
-                                    item.status === 'Active' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_red_xs mt-2'
-                                          title='Mark as Inactive'
-                                          btnType='button'
-                                          handleClick={() => handleInactive(item.id)}
-                                        />
-                                  }
-                                  {
-                                    item.status === 'Inactive' &&
-                                        <CustomButton
-                                          containerStyles='app__btn_green_xs mt-2'
-                                          title='Mark as Active'
-                                          btnType='button'
-                                          handleClick={() => handleActive(item.id)}
-                                        />
-                                  }
-                                  </div>
-                                </Menu.Item>
+                                {
+                                  item.status === 'Active' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleInactive(item.id)} className='app__dropdown_item'>
+                                        <ArchiveBoxXMarkIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-red-500 font-medium'>Inactive</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
+                                {
+                                  item.status === 'Inactive' &&
+                                    <Menu.Item>
+                                      <div onClick={() => handleActive(item.id)} className='app__dropdown_item'>
+                                        <CheckCircleIcon className='w-4 h-4'/>
+                                        <span>Mark as <span className='text-green-500 font-medium'>Active</span></span>
+                                      </div>
+                                    </Menu.Item>
+                                }
                               </div>
                             </Menu.Items>
                           </Transition>

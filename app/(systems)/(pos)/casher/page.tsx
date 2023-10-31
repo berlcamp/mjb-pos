@@ -16,12 +16,16 @@ const Page: React.FC = () => {
   const [cart, setCart] = useState<ProductTypes[] | []>([])
   const [cartTotal, setCartTotal] = useState(0)
   const [cash, setCash] = useState('')
+  const [terms, setTerms] = useState('0')
   const [customerName, setCustomerName] = useState('')
   const [change, setChange] = useState(0)
+  const [paymentType, setPaymentType] = useState('cash')
 
   const [saving, setSaving] = useState(false)
   const [showConfirmCompleteModal, setShowConfirmCompleteModal] = useState(false)
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false)
+
+  const [errorCustomer, setErrorCustomer] = useState('')
 
   const { supabase, session } = useSupabase()
   const { setToast, hasAccess } = useFilter()
@@ -137,17 +141,11 @@ const Page: React.FC = () => {
     }
   }
 
-  const handleCashChange = (c: string) => {
-    setCash(c)
-    const chnge = Number(c) - cartTotal
-    if (chnge >= 0) {
-      setChange(chnge)
-    } else {
-      setChange(0)
-    }
-  }
-
   const handleConfirmComplete = () => {
+    if (customerName === '') {
+      setErrorCustomer('Customer Name is required.')
+      return
+    }
     setShowConfirmCompleteModal(true)
   }
 
@@ -192,7 +190,9 @@ const Page: React.FC = () => {
           total: cartTotal,
           transaction_date: new Date(),
           org_id: process.env.NEXT_PUBLIC_ORG_ID,
-          cash
+          cash,
+          terms,
+          payment_type: paymentType
         })
         .select()
 
@@ -319,11 +319,11 @@ const Page: React.FC = () => {
                                                 {
                                                   Number(product.available_stocks) < 1
                                                     ? <span className='px-1 py-px bg-white rounded-full text-gray-700'>Out of Stock</span>
-                                                    : <span>{product.available_stocks}</span>
+                                                    : <span>{Number(product.available_stocks).toLocaleString('en-US')}</span>
                                                 }
                                               </td>
                                               <td className="py-2 px-6">
-                                                <span className='font-bold text-sm'>{product.price}</span>
+                                                <span className='font-bold text-sm'>{Number(product.price).toLocaleString('en-US')}</span>
                                               </td>
                                             </tr>
                                           )
@@ -437,23 +437,74 @@ const Page: React.FC = () => {
                         placeholder='Customer Name'
                         className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
                     </div>
-                    <div className='font-medium mt-6'>CASH</div>
+                    {
+                      errorCustomer !== '' && <div className='app__error_message'>{errorCustomer}</div>
+                    }
+                    <div className='font-medium mt-6'>Type of Payment</div>
                     <div className='mt-2'>
-                      <input
-                        type='number'
-                        step='any'
-                        value={cash}
-                        onChange={e => handleCashChange(e.target.value)}
-                        placeholder='Cash'
-                        className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
+                      <div className="flex space-x-4">
+                        <label className='flex space-x-2'>
+                          <input
+                            type="radio"
+                            checked={paymentType === 'cash'}
+                            onChange={() => setPaymentType('cash')}
+                            className="focus:ring-0"/>
+                          <span>Cash</span>
+                        </label>
+                        <label className='flex space-x-2'>
+                          <input
+                            type="radio"
+                            checked={paymentType === 'credit'}
+                            onChange={() => setPaymentType('credit')}
+                            className="focus:ring-0"/>
+                          <span>Credit</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className='font-medium mt-6'>CHANGE:</div>
-                    <div className='mt-2 text-xl p-3 bg-green-300'>
-                      <span className='font-bold'>{change}</span>
-                    </div>
+                    {
+                      paymentType === 'cash' &&
+                        <>
+                          <div className='font-medium mt-6'>CASH</div>
+                          <div className='mt-2'>
+                            <input
+                              type='number'
+                              step='any'
+                              value={cash}
+                              onChange={e => {
+                                setCash(e.target.value)
+                                const chnge = Number(e.target.value) - cartTotal
+                                if (chnge >= 0) {
+                                  setChange(chnge)
+                                } else {
+                                  setChange(0)
+                                }
+                              }}
+                              placeholder='Cash'
+                              className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
+                          </div>
+                          <div className='font-medium mt-6'>CHANGE:</div>
+                          <div className='mt-2 text-xl p-3 bg-green-300'>
+                            <span className='font-bold'>{change}</span>
+                          </div>
+                        </>
+                    }
+                    {
+                      paymentType === 'credit' &&
+                        <>
+                          <div className='font-medium mt-6'>Credit Terms (Days)</div>
+                          <div className='mt-2'>
+                            <input
+                              type='number'
+                              placeholder='Days'
+                              value={terms}
+                              onChange={e => setTerms(e.target.value)}
+                              className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
+                          </div>
+                        </>
+                    }
                     <div className='font-medium mt-6 flex space-x-4'>
                       {
-                        Number(cash) >= cartTotal &&
+                        ((paymentType === 'cash' && Number(cash) >= cartTotal) || (paymentType === 'credit')) &&
                           <CustomButton
                               containerStyles='bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-600 font-bold px-2 py-2 text-sm text-white rounded-sm'
                               title='Complete Purchase'

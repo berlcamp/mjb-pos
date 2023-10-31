@@ -532,7 +532,7 @@ export async function fetchPurchaseOrders (filters: { filterKeyword?: string, fi
   }
 }
 
-export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string, filterPaymentType?: string }, perPageCount: number, rangeFrom: number) {
   try {
     let query = supabase
       .from('rdt_sale_transactions')
@@ -564,6 +564,11 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
     // filter casher
     if (filters.filterCasher && filters.filterCasher !== '') {
       query = query.eq('casher_id', filters.filterCasher)
+    }
+
+    // filter payment type
+    if (filters.filterPaymentType && filters.filterPaymentType !== '') {
+      query = query.eq('payment_type', filters.filterPaymentType)
     }
 
     // Per Page from context
