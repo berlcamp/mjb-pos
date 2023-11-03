@@ -16,7 +16,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
 import { Menu, Transition } from '@headlessui/react'
-import { ChevronDownIcon, TrashIcon, TruckIcon } from '@heroicons/react/20/solid'
+import { CheckCircleIcon, ChevronDownIcon, TrashIcon, TruckIcon } from '@heroicons/react/20/solid'
 import { format } from 'date-fns'
 import ProductsModal from './ProductsModal'
 
@@ -33,6 +33,7 @@ const Page: React.FC = () => {
 
   const [showProductsModal, setShowProductsModal] = useState(false)
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false)
+  const [showConfirmPaidModal, setShowConfirmPaidModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
   const [sales, setSales] = useState<SalesTypes[] | []>([])
 
@@ -109,6 +110,11 @@ const Page: React.FC = () => {
     setShowConfirmCancelModal(true)
   }
 
+  const handlePaid = (id: string) => {
+    setSelectedId(id)
+    setShowConfirmPaidModal(true)
+  }
+
   const handleCancelConfirmed = async () => {
     try {
       // update purchase transaction status to "Cancelled"
@@ -169,6 +175,31 @@ const Page: React.FC = () => {
     }
   }
 
+  const handlePaidConfirmed = async () => {
+    try {
+      // update purchase transaction status to "Paid"
+      const { error } = await supabase
+        .from('rdt_sale_transactions')
+        .update({ status: 'Paid' })
+        .eq('id', selectedId)
+
+      if (error) throw new Error(error.message)
+
+      // Update data in redux
+      const items = [...globallist]
+      const updatedData = { status: 'Paid', id: selectedId }
+      const foundIndex = items.findIndex(x => x.id === updatedData.id)
+      items[foundIndex] = { ...items[foundIndex], ...updatedData }
+      dispatch(updateList(items))
+
+      // pop up the success message
+      setToast('success', 'Successfully saved.')
+      setShowConfirmPaidModal(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   // Update list whenever list in redux updates
   useEffect(() => {
     setList(globallist)
@@ -212,7 +243,7 @@ const Page: React.FC = () => {
 
           {/* Totals */}
           <div className='px-4 pb-4 flex items-center justify-end space-x-2'>
-          <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{totalSales}</span></div>
+          <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{Number(totalSales).toLocaleString('en-US')}</span></div>
           </div>
 
           {/* Per Page */}
@@ -293,8 +324,17 @@ const Page: React.FC = () => {
                                   item.status !== 'Cancelled' &&
                                     <Menu.Item>
                                       <div onClick={() => handleCancel(item.id)} className='app__dropdown_item'>
-                                        <TrashIcon className='w-4 h-4'/>
+                                        <TrashIcon className='w-4 h-4 text-red-500'/>
                                         <span className='text-red-500 font-medium'>Cancel this Transaction</span>
+                                      </div>
+                                    </Menu.Item>
+                                }
+                                {
+                                  (item.status !== 'Cancelled' && item.status !== 'Paid' && item.payment_type === 'credit') &&
+                                    <Menu.Item>
+                                      <div onClick={() => handlePaid(item.id)} className='app__dropdown_item'>
+                                        <CheckCircleIcon className='w-4 h-4 text-green-500'/>
+                                        <span className='text-green-500 font-medium'>Set as PAID</span>
                                       </div>
                                     </Menu.Item>
                                 }
@@ -343,6 +383,9 @@ const Page: React.FC = () => {
                         className="hidden md:table-cell app__td">
                         {
                           item.status === 'Cancelled' && <span className='app__status_container_red'>Cancelled</span>
+                        }
+                        {
+                          item.status === 'Paid' && <span className='app__status_container_green'>Paid</span>
                         }
                       </td>
                       <td
@@ -411,6 +454,18 @@ const Page: React.FC = () => {
           message="All purchased product will be returned, please confirm this action; it cannot be undone."
           onConfirm={handleCancelConfirmed}
           onCancel={() => setShowConfirmCancelModal(false)}
+        />
+      )
+    }
+    {/* Confirm Paid Modal */}
+    {
+      showConfirmPaidModal && (
+        <ConfirmModal
+          header='Confirmation'
+          btnText='Confirm'
+          message="Please confirm this action; it cannot be undone."
+          onConfirm={handlePaidConfirmed}
+          onCancel={() => setShowConfirmPaidModal(false)}
         />
       )
     }

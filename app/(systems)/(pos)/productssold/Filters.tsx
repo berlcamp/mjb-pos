@@ -14,8 +14,8 @@ interface FilterTypes {
 const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilterDateTo, setFilterCasher }: FilterTypes) => {
   const [keyword, setKeyword] = useState<string>('')
   const [status, setStatus] = useState<string>('')
-  const [dateFrom, setDateFrom] = useState<string>('')
-  const [dateTo, setDateTo] = useState<string>('')
+  const [dateFrom, setDateFrom] = useState<string>(new Date().toISOString().split('T')[0])
+  const [dateTo, setDateTo] = useState<string>(new Date().toISOString().split('T')[0])
   const [casher, setCasher] = useState<string>('')
 
   const [cashers, setCashers] = useState<AccountTypes[] | []>([])

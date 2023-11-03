@@ -549,16 +549,23 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
       query = query.eq('status', filters.filterStatus)
     }
 
-    // filter date from
-    if (filters.filterDateFrom && filters.filterDateFrom !== '') {
-      const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+    if (!filters.filterDateFrom && !filters.filterDateTo) {
+      const date = format(new Date(), 'yyyy-MM-dd')
+      const date2 = format(new Date(), 'yyyy-MM-dd')
       query = query.gte('transaction_date', date)
-    }
+      query = query.lte('transaction_date', date2)
+    } else {
+      // filter date from
+      if (filters.filterDateFrom && filters.filterDateFrom !== '') {
+        const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+        query = query.gte('transaction_date', date)
+      }
 
-    // filter date to
-    if (filters.filterDateTo && filters.filterDateTo !== '') {
-      const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
-      query = query.lte('transaction_date', date)
+      // filter date to
+      if (filters.filterDateTo && filters.filterDateTo !== '') {
+        const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
+        query = query.lte('transaction_date', date)
+      }
     }
 
     // filter casher
@@ -617,16 +624,23 @@ export async function fetchSales (filters: { filterKeyword?: string, filterStatu
       query = query.eq('status', filters.filterStatus)
     }
 
-    // filter date from
-    if (filters.filterDateFrom && filters.filterDateFrom !== '') {
-      const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+    if (!filters.filterDateFrom && !filters.filterDateTo) {
+      const date = format(new Date(), 'yyyy-MM-dd')
+      const date2 = format(new Date(), 'yyyy-MM-dd')
       query = query.gte('transaction_date', date)
-    }
+      query = query.lte('transaction_date', date2)
+    } else {
+      // filter date from
+      if (filters.filterDateFrom && filters.filterDateFrom !== '') {
+        const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+        query = query.gte('transaction_date', date)
+      }
 
-    // filter date to
-    if (filters.filterDateTo && filters.filterDateTo !== '') {
-      const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
-      query = query.lte('transaction_date', date)
+      // filter date to
+      if (filters.filterDateTo && filters.filterDateTo !== '') {
+        const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
+        query = query.lte('transaction_date', date)
+      }
     }
 
     // filter casher

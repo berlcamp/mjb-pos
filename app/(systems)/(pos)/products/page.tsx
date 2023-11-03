@@ -295,10 +295,14 @@ const Page: React.FC = () => {
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
+                            <div>Category: {item.rdt_product_categories?.name}</div>
+                            <div>Unit: {item.rdt_product_units?.name}</div>
+                            <div>Available Stocks: {item.available_stocks}</div>
+                            <div>Price: {item.price}</div>
                             <div>
                             {
-                              item.status === 'Archived'
-                                ? <span className='app__status_container_red'>Archived</span>
+                              item.status === 'Inactive'
+                                ? <span className='app__status_container_red'>Inactive</span>
                                 : <span className='app__status_container_green'>Active</span>
                             }
                             </div>

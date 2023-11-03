@@ -127,8 +127,8 @@ const Page: React.FC = () => {
 
           {/* Totals */}
           <div className='px-4 pb-4 flex items-center justify-end space-x-2'>
-            <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Sold Products: <span className='font-bold text-lg'>{soldProducts}</span></div>
-            <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{totalSales}</span></div>
+            <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Sold Products: <span className='font-bold text-lg'>{Number(soldProducts).toLocaleString('en-US')}</span></div>
+            <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{Number(totalSales).toLocaleString('en-US')}</span></div>
           </div>
 
           {/* Per Page */}
