@@ -41,7 +41,7 @@ export default function LoginBox () {
         setError('Credentials provided is incorrect.')
         setSigningIn(false)
       } else {
-        router.push('/')
+        router.refresh()
       }
     } else {
       setError('This is account is currently inactive.')
