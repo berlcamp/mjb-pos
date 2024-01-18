@@ -56,6 +56,7 @@ const Page: React.FC = () => {
     try {
       const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher, filterPaymentType }, perPageCount, 0)
 
+      console.log('result.data', result.data)
       // update the list in redux
       dispatch(updateList(result.data))
 

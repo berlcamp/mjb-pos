@@ -31,7 +31,7 @@ const Page: React.FC = () => {
 
   // summary
   const [soldProducts, setSoldProducts] = useState(0)
-  const [totalSales, setTotalSales] = useState(0)
+  // const [totalSales, setTotalSales] = useState(0)
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
@@ -55,8 +55,8 @@ const Page: React.FC = () => {
 
       // summary
       const summary = await fetchSales({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, 99999, 0)
-      const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => accumulator + Number(sale.total), 0) // get the sum of total price
-      setTotalSales(salesTotal)
+      // const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => accumulator + Number(sale.total), 0) // get the sum of total price
+      // setTotalSales(salesTotal)
       setSoldProducts(summary.count ? summary.count : 0)
 
       setLoading(false)
@@ -128,7 +128,7 @@ const Page: React.FC = () => {
           {/* Totals */}
           <div className='px-4 pb-4 flex items-center justify-end space-x-2'>
             <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Sold Products: <span className='font-bold text-lg'>{Number(soldProducts).toLocaleString('en-US')}</span></div>
-            <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{Number(totalSales).toLocaleString('en-US')}</span></div>
+            {/* <div className='text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg'>Total Sales: <span className='font-bold text-lg'>{Number(totalSales).toLocaleString('en-US')}</span></div> */}
           </div>
 
           {/* Per Page */}
