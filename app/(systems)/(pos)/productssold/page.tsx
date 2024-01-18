@@ -54,7 +54,7 @@ const Page: React.FC = () => {
       dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
 
       // summary
-      const summary = await fetchSales({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, 99999, 0)
+      const summary = await fetchSales({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, 0, 0)
       // const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => accumulator + Number(sale.total), 0) // get the sum of total price
       // setTotalSales(salesTotal)
       setSoldProducts(summary.count ? summary.count : 0)

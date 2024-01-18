@@ -532,7 +532,7 @@ export async function fetchPurchaseOrders (filters: { filterKeyword?: string, fi
   }
 }
 
-export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string, filterPaymentType?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDate?: string, filterCasher?: string, filterPaymentType?: string }, perPageCount: number, rangeFrom: number) {
   try {
     let query = supabase
       .from('rdt_sale_transactions')
@@ -549,23 +549,31 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
       query = query.eq('status', filters.filterStatus)
     }
 
-    if (!filters.filterDateFrom && !filters.filterDateTo) {
-      const date = format(new Date(), 'yyyy-MM-dd')
-      const date2 = format(new Date(), 'yyyy-MM-dd')
-      query = query.gte('transaction_date', date)
-      query = query.lte('transaction_date', date2)
-    } else {
-      // filter date from
-      if (filters.filterDateFrom && filters.filterDateFrom !== '') {
-        const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
-        query = query.gte('transaction_date', date)
-      }
+    // if (!filters.filterDateFrom && !filters.filterDateTo) {
+    //   const date = format(new Date(), 'yyyy-MM-dd')
+    //   const date2 = format(new Date(), 'yyyy-MM-dd')
+    //   query = query.gte('transaction_date', date)
+    //   query = query.lte('transaction_date', date2)
+    // } else {
+    //   // filter date from
+    //   if (filters.filterDateFrom && filters.filterDateFrom !== '') {
+    //     const date = format(new Date(filters.filterDateFrom), 'yyyy-MM-dd')
+    //     query = query.gte('transaction_date', date)
+    //   }
 
-      // filter date to
-      if (filters.filterDateTo && filters.filterDateTo !== '') {
-        const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
-        query = query.lte('transaction_date', date)
-      }
+    //   // filter date to
+    //   if (filters.filterDateTo && filters.filterDateTo !== '') {
+    //     const date = format(new Date(filters.filterDateTo), 'yyyy-MM-dd')
+    //     query = query.lte('transaction_date', date)
+    //   }
+    // }
+
+    // filter date
+    if (filters.filterDate && filters.filterDate !== '') {
+      query = query.eq('transaction_date', format(new Date(filters.filterDate), 'yyyy-MM-dd'))
+    } else {
+      const date = format(new Date(), 'yyyy-MM-dd')
+      query = query.eq('transaction_date', date)
     }
 
     // filter casher
@@ -578,12 +586,14 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
       query = query.eq('payment_type', filters.filterPaymentType)
     }
 
-    // Per Page from context
-    const from = rangeFrom
-    const to = from + (perPageCount - 1)
+    if (perPageCount > 0) {
+      // Per Page from context
+      const from = rangeFrom
+      const to = from + (perPageCount - 1)
 
-    // Per Page from context
-    query = query.range(from, to)
+      // Per Page from context
+      query = query.range(from, to)
+    }
 
     // Order By
     query = query.order('id', { ascending: false })

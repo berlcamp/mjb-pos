@@ -27,8 +27,7 @@ const Page: React.FC = () => {
   const [filterKeyword, setFilterKeyword] = useState<string>('')
   const [filterStatus, setFilterStatus] = useState<string>('')
   const [filterCasher, setFilterCasher] = useState<string>('')
-  const [filterDateFrom, setFilterDateFrom] = useState<string>('')
-  const [filterDateTo, setFilterDateTo] = useState<string>('')
+  const [filterDate, setFilterDate] = useState<string>('')
   const [filterPaymentType, setFilterPaymentType] = useState<string>('')
 
   const [showProductsModal, setShowProductsModal] = useState(false)
@@ -54,9 +53,8 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher, filterPaymentType }, perPageCount, 0)
+      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDate, filterCasher, filterPaymentType }, perPageCount, 0)
 
-      console.log('result.data', result.data)
       // update the list in redux
       dispatch(updateList(result.data))
 
@@ -64,7 +62,7 @@ const Page: React.FC = () => {
       dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
 
       // summary
-      const summary = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher, filterPaymentType }, 99999, 0)
+      const summary = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDate, filterCasher, filterPaymentType }, 0, 0)
       const salesTotal = summary.data.reduce((accumulator, sale: SalesTypes) => {
         if (sale.status !== 'Cancelled') {
           return accumulator + Number(sale.total)
@@ -85,7 +83,7 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterDateFrom, filterDateTo, filterCasher }, perPageCount, list.length)
+      const result = await fetchSaleTransactions({ filterKeyword, filterStatus, filterCasher }, perPageCount, list.length)
 
       // update the list in redux
       const newList = [...list, ...result.data]
@@ -212,7 +210,7 @@ const Page: React.FC = () => {
     void fetchData()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterKeyword, perPageCount, filterDateFrom, filterDateTo, filterStatus, filterCasher, filterPaymentType])
+  }, [filterKeyword, perPageCount, filterDate, filterStatus, filterCasher, filterPaymentType])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
@@ -235,8 +233,7 @@ const Page: React.FC = () => {
           <div className='app__filters'>
             <Filters
               setFilterKeyword={setFilterKeyword}
-              setFilterDateFrom={setFilterDateFrom}
-              setFilterDateTo={setFilterDateTo}
+              setFilterDate={setFilterDate}
               setFilterStatus={setFilterStatus}
               setFilterPaymentType={setFilterPaymentType}
               setFilterCasher={setFilterCasher}/>
@@ -378,7 +375,7 @@ const Page: React.FC = () => {
 
                       <td
                         className="hidden md:table-cell app__td">
-                        {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}
+                        {format(new Date(item.created_at), 'MMMM dd, yyyy hh:mm aaa')}
                       </td>
                       <td
                         className="hidden md:table-cell app__td">

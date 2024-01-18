@@ -6,17 +6,15 @@ import type { AccountTypes } from '@/types'
 interface FilterTypes {
   setFilterKeyword: (keyword: string) => void
   setFilterStatus: (status: string) => void
-  setFilterDateFrom: (date: string) => void
-  setFilterDateTo: (date: string) => void
+  setFilterDate: (date: string) => void
   setFilterCasher: (casher: string) => void
   setFilterPaymentType: (type: string) => void
 }
 
-const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilterDateTo, setFilterCasher, setFilterPaymentType }: FilterTypes) => {
+const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDate, setFilterCasher, setFilterPaymentType }: FilterTypes) => {
   const [keyword, setKeyword] = useState<string>('')
   const [status, setStatus] = useState<string>('')
-  const [dateFrom, setDateFrom] = useState<string>(new Date().toISOString().split('T')[0])
-  const [dateTo, setDateTo] = useState<string>(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [casher, setCasher] = useState<string>('')
   const [paymentType, setPaymentType] = useState<string>('')
 
@@ -25,13 +23,12 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
   const { supabase } = useSupabase()
 
   const handleApply = () => {
-    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '' && paymentType === '') return
+    if (keyword.trim() === '' && status === '' && date === '' && casher === '' && paymentType === '') return
 
     // pass filter values to parent
     setFilterKeyword(keyword)
     setFilterStatus(status)
-    setFilterDateFrom(dateFrom)
-    setFilterDateTo(dateTo)
+    setFilterDate(date)
     setFilterCasher(casher)
     setFilterPaymentType(paymentType)
   }
@@ -39,13 +36,12 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    if (keyword.trim() === '' && status === '' && dateFrom === '' && dateTo === '' && casher === '' && paymentType === '') return
+    if (keyword.trim() === '' && status === '' && date === '' && casher === '' && paymentType === '') return
 
     // pass filter values to parent
     setFilterKeyword(keyword)
     setFilterStatus(status)
-    setFilterDateFrom(dateFrom)
-    setFilterDateTo(dateTo)
+    setFilterDate(date)
     setFilterCasher(casher)
     setFilterPaymentType(paymentType)
   }
@@ -56,10 +52,8 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
     setKeyword('')
     setFilterStatus('')
     setStatus('')
-    setFilterDateFrom('')
-    setDateFrom('')
-    setFilterDateTo('')
-    setDateTo('')
+    setFilterDate('')
+    setDate('')
     setFilterCasher('')
     setCasher('')
     setFilterPaymentType('')
@@ -100,19 +94,11 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDateFrom, setFilt
               className="app__filter_input"/>
           </div>
           <div className='app__filter_container'>
-            <span className='text-xs text-gray-600'>From:</span>
+            <span className='text-xs text-gray-600'>Date:</span>
             <input
               type='date'
-              value={dateFrom}
-              onChange={e => setDateFrom(e.target.value)}
-              className="app__filter_date"/>
-          </div>
-          <div className='app__filter_container'>
-            <span className='text-xs text-gray-600'>To:</span>
-            <input
-              type='date'
-              value={dateTo}
-              onChange={e => setDateTo(e.target.value)}
+              value={date}
+              onChange={e => setDate(e.target.value)}
               className="app__filter_date"/>
           </div>
           <div className='hidden'>

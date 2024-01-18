@@ -204,7 +204,6 @@ const Page: React.FC = () => {
           casher_id: session.user.id,
           customer_name: customerName,
           total: cartTotal,
-          transaction_date: new Date(),
           org_id: process.env.NEXT_PUBLIC_ORG_ID,
           cash,
           terms,
@@ -223,7 +222,6 @@ const Page: React.FC = () => {
           unit_price: product.price,
           total: product.total,
           sale_transaction_id: transaction[0].id,
-          transaction_date: new Date(),
           org_id: process.env.NEXT_PUBLIC_ORG_ID
         }
       })
