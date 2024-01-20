@@ -198,6 +198,35 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
   }
 }
 
+export async function fetchErrorLogs (perPageCount: number, rangeFrom: number) {
+  try {
+    let query = supabase
+      .from('query_errors')
+      .select('*', { count: 'exact' })
+
+    // Per Page from context
+    const from = rangeFrom
+    const to = from + (perPageCount - 1)
+
+    // Per Page from context
+    query = query.range(from, to)
+
+    // Order By
+    query = query.order('id', { ascending: false })
+
+    const { data, error, count } = await query
+
+    if (error) {
+      throw new Error(error.message)
+    }
+
+    return { data, count }
+  } catch (error) {
+    console.error('fetch error', error)
+    return { data: [], count: 0 }
+  }
+}
+
 export async function fetchProjects (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
   try {
     let query = supabase

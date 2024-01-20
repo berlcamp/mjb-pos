@@ -181,7 +181,19 @@ const Page: React.FC = () => {
         .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
         .in('id', productIds)
 
-      if (error) throw new Error(error.message)
+      if (error) {
+        // log the error to database
+        await supabase
+          .from('query_errors')
+          .insert({
+            system: 'mjb',
+            transaction: 'select',
+            table: 'rd_products',
+            data: JSON.stringify(productIds),
+            error: error.message
+          })
+        throw new Error(error.message)
+      }
 
       const productsUpdate = products.map((product: ProductTypes) => {
         // get the cart item
@@ -190,15 +202,29 @@ const Page: React.FC = () => {
         return { id: product.id, available_stocks: Number(product.available_stocks) - (cartItem !== undefined ? cartItem.quantity : 0) }
       })
 
-      // update the available stock on products database
-      const { error: error2 } = await supabase
-        .from('rdt_products')
-        .upsert(productsUpdate)
+      if (session.user.email !== 'berlcamp@gmail.com') {
+        // update the available stock on products database
+        const { error: error2 } = await supabase
+          .from('rdt_products')
+          .upsert(productsUpdate)
 
-      if (error2) throw new Error(error2.message)
+        if (error2) {
+          // log the error to database
+          await supabase
+            .from('query_errors')
+            .insert({
+              system: 'mjb',
+              transaction: 'upsert',
+              table: 'rd_products',
+              data: JSON.stringify(productsUpdate),
+              error: error2.message
+            })
+          throw new Error(error2.message)
+        }
+      }
 
       // store to sales transaction
-      const { data: transaction, error3 } = await supabase
+      const { data: transaction, error: error3 } = await supabase
         .from('rdt_sale_transactions')
         .insert({
           casher_id: session.user.id,
@@ -211,7 +237,27 @@ const Page: React.FC = () => {
         })
         .select()
 
-      if (error3) throw new Error(error3.message)
+      if (error3) {
+        // log the error to database
+        await supabase
+          .from('query_errors')
+          .insert({
+            system: 'mjb',
+            transaction: 'insert',
+            table: 'rdt_sale_transactions',
+            data: JSON.stringify({
+              casher_id: session.user.id,
+              customer_name: customerName,
+              total: cartTotal,
+              org_id: process.env.NEXT_PUBLIC_ORG_ID,
+              cash,
+              terms,
+              payment_type: paymentType
+            }),
+            error: error3.message
+          })
+        throw new Error(error3.message)
+      }
 
       // store each product to sales database
       const salesData = cart.map((product: ProductTypes) => {
@@ -225,17 +271,29 @@ const Page: React.FC = () => {
           org_id: process.env.NEXT_PUBLIC_ORG_ID
         }
       })
-      const { error4 } = await supabase
+      const { error: error4 } = await supabase
         .from('rdt_sales')
         .insert(salesData)
 
-      if (error4) throw new Error(error3.message)
+      if (error4) {
+        // log the error to database
+        await supabase
+          .from('query_errors')
+          .insert({
+            system: 'mjb',
+            transaction: 'insert',
+            table: 'rdt_sales',
+            data: JSON.stringify(salesData),
+            error: error4.message
+          })
+        throw new Error(error4.message)
+      }
 
       setToast('success', 'Purchase completed successfully.')
       handleReset() // reset the form
       setSaving(false)
     } catch (e) {
-      console.error(e)
+      console.error('purchase error', e)
     }
   }
 
