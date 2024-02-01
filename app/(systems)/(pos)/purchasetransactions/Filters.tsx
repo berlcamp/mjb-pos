@@ -120,6 +120,7 @@ const Filters = ({ setFilterKeyword, setFilterStatus, setFilterDate, setFilterCa
                 <option value=''>All</option>
                 <option value='cash'>Cash</option>
                 <option value='credit'>Credit</option>
+                <option value='check'>Check</option>
             </select>
           </div>
           <div className='app__filter_container'>

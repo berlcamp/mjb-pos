@@ -539,6 +539,14 @@ const Page: React.FC = () => {
                             className="focus:ring-0"/>
                           <span>Credit</span>
                         </label>
+                        <label className='flex space-x-2'>
+                          <input
+                            type="radio"
+                            checked={paymentType === 'check'}
+                            onChange={() => setPaymentType('check')}
+                            className="focus:ring-0"/>
+                          <span>Check</span>
+                        </label>
                       </div>
                     </div>
                     {
