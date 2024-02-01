@@ -17,6 +17,7 @@ const Page: React.FC = () => {
   const [cartTotal, setCartTotal] = useState(0)
   const [cash, setCash] = useState('')
   const [terms, setTerms] = useState('0')
+  const [checkDate, setCheckDate] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [change, setChange] = useState(0)
   const [paymentType, setPaymentType] = useState('cash')
@@ -233,7 +234,8 @@ const Page: React.FC = () => {
           org_id: process.env.NEXT_PUBLIC_ORG_ID,
           cash,
           terms,
-          payment_type: paymentType
+          payment_type: paymentType,
+          check_date: checkDate
         })
         .select()
 
@@ -550,9 +552,27 @@ const Page: React.FC = () => {
                       </div>
                     </div>
                     {
-                      paymentType === 'cash' &&
+                      paymentType === 'check' &&
                         <>
-                          <div className='font-medium mt-6'>Cash:</div>
+                          <div className='font-medium mt-6'>Check Date</div>
+                          <div className='mt-2'>
+                            <input
+                              type='date'
+                              value={checkDate}
+                              onChange={e => setCheckDate(e.target.value)}
+                              className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
+                          </div>
+                        </>
+                    }
+                    {
+                      (paymentType === 'cash' || paymentType === 'check') &&
+                        <>
+                          {
+                            paymentType === 'cash' && <div className='font-medium mt-6'>Cash:</div>
+                          }
+                          {
+                            paymentType === 'check' && <div className='font-medium mt-6'>Check Amount:</div>
+                          }
                           <div className='mt-2'>
                             <input
                               type='number'
@@ -567,7 +587,7 @@ const Page: React.FC = () => {
                                   setChange(0)
                                 }
                               }}
-                              placeholder='Cash'
+                              placeholder='Amount'
                               className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
                           </div>
                           <div className='font-medium mt-6'>Change:</div>
@@ -592,7 +612,7 @@ const Page: React.FC = () => {
                     }
                     <div className='font-medium mt-6 flex space-x-4'>
                       {
-                        ((paymentType === 'cash' && Number(cash) >= cartTotal) || (paymentType === 'credit')) &&
+                        (((paymentType === 'cash' || paymentType === 'check') && Number(cash) >= cartTotal) || (paymentType === 'credit')) &&
                           <CustomButton
                               containerStyles='bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-600 font-bold px-2 py-2 text-sm text-white rounded-sm'
                               title='Complete Purchase'

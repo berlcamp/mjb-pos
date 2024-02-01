@@ -348,11 +348,13 @@ const Page: React.FC = () => {
                         <div>
                           <div className="md:hidden app__td_mobile">
                             <div>Date: {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}</div>
-                            <div>Payment Type: {item.payment_type === 'cash' && <span>Cash</span>}
+                            <div>Payment Type:
+                              {item.payment_type === 'cash' && <span>Cash</span>}
+                              {item.payment_type === 'check' && <span>Check</span>}
                               {item.payment_type === 'credit' && <span>Credit ({item.terms} days)</span>}
                             </div>
                             <div>Total: {Number(item.total).toLocaleString('en-US')}</div>
-                            <div>Cash: {item.payment_type === 'cash' && <span>{Number(item.cash).toLocaleString('en-US')}</span>}</div>
+                            <div>Cash/Check Amount: {(item.payment_type === 'cash' || item.payment_type === 'check') && <span>{Number(item.cash).toLocaleString('en-US')}</span>}</div>
                             <div>Change: {item.payment_type === 'cash' && <span>{(Number(item.cash) - Number(item.total)).toLocaleString('en-US')}</span>}</div>
                             <div>
                               {
@@ -392,19 +394,22 @@ const Page: React.FC = () => {
                           item.payment_type === 'cash' && <span>Cash</span>
                         }
                         {
+                          item.payment_type === 'check' && <span>Check</span>
+                        }
+                        {
                           item.payment_type === 'credit' && <span>Credit ({item.terms} days)</span>
                         }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
                         {
-                          item.payment_type === 'cash' && <span>{Number(item.cash).toLocaleString('en-US')}</span>
+                          (item.payment_type === 'cash' || item.payment_type === 'check') && <span>{Number(item.cash).toLocaleString('en-US')}</span>
                         }
                       </td>
                       <td
                         className="hidden md:table-cell app__td">
                         {
-                          item.payment_type === 'cash' && <span>{(Number(item.cash) - Number(item.total)).toLocaleString('en-US')}</span>
+                          (item.payment_type === 'cash' || item.payment_type === 'check') && <span>{(Number(item.cash) - Number(item.total)).toLocaleString('en-US')}</span>
                         }
                       </td>
                       <td
