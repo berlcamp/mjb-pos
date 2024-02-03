@@ -145,19 +145,21 @@ const Page: React.FC = () => {
 
       if (error3) throw new Error(error3.message)
 
-      // create upsert array to update product stocks
-      const upsertData = products.map((product: ProductTypes) => {
-        const p: SalesTypes = sales.find((s: SalesTypes) => s.product_id === product.id)
-        const stocks = Number(product.available_stocks) + Number(p.quantity)
-        return { id: product.id, available_stocks: stocks }
-      })
+      if (session.user.email !== 'berlcamp@gmail.com') {
+        // create upsert array to update product stocks
+        const upsertData = products.map((product: ProductTypes) => {
+          const p: SalesTypes = sales.find((s: SalesTypes) => s.product_id === product.id)
+          const stocks = Number(product.available_stocks) + Number(p.quantity)
+          return { id: product.id, available_stocks: stocks }
+        })
 
-      // update the product stocks in the database
-      const { error4 } = await supabase
-        .from('rdt_products')
-        .upsert(upsertData)
+        // update the product stocks in the database
+        const { error4 } = await supabase
+          .from('rdt_products')
+          .upsert(upsertData)
 
-      if (error4) throw new Error(error4.message)
+        if (error4) throw new Error(error4.message)
+      }
 
       // Update data in redux
       const items = [...globallist]
@@ -350,7 +352,12 @@ const Page: React.FC = () => {
                             <div>Date: {format(new Date(item.created_at), 'MMMM dd, yyyy HH:mm aaa')}</div>
                             <div>Payment Type:
                               {item.payment_type === 'cash' && <span>Cash</span>}
-                              {item.payment_type === 'check' && <span>Check</span>}
+                              {item.payment_type === 'check' &&
+                                <div>
+                                  <div>Check</div>
+                                  <div className='text-[10px]'>{format(new Date(item.check_date), 'MMMM dd, yyyy')}</div>
+                                </div>
+                              }
                               {item.payment_type === 'credit' && <span>Credit ({item.terms} days)</span>}
                             </div>
                             <div>Total: {Number(item.total).toLocaleString('en-US')}</div>

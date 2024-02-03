@@ -245,6 +245,7 @@ export interface TransactionTypes {
   total: string
   cash: string
   terms: string
+  check_date: string
   payment_type: string
   status: string
   transaction_date: string

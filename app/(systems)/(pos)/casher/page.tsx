@@ -27,6 +27,7 @@ const Page: React.FC = () => {
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false)
 
   const [errorCustomer, setErrorCustomer] = useState('')
+  const [errorDate, setErrorDate] = useState('')
 
   const { supabase, session } = useSupabase()
   const { setToast, hasAccess } = useFilter()
@@ -159,8 +160,15 @@ const Page: React.FC = () => {
   }
 
   const handleConfirmComplete = () => {
-    if (customerName === '') {
-      setErrorCustomer('Customer Name is required.')
+    setErrorCustomer('')
+    setErrorDate('')
+    if (customerName === '' || (paymentType === 'check' && checkDate === '')) {
+      if (customerName === '') {
+        setErrorCustomer('Customer Name is required.')
+      }
+      if (paymentType === 'check' && checkDate === '') {
+        setErrorDate('Check Date is required.')
+      }
       return
     }
     setShowConfirmCompleteModal(true)
@@ -561,6 +569,9 @@ const Page: React.FC = () => {
                               value={checkDate}
                               onChange={e => setCheckDate(e.target.value)}
                               className='p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none'/>
+                            {
+                              errorDate !== '' && <div className='app__error_message'>{errorDate}</div>
+                            }
                           </div>
                         </>
                     }
