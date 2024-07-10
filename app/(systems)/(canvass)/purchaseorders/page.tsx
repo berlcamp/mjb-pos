@@ -1,28 +1,42 @@
 'use client'
 
-import { fetchPurchaseOrders } from '@/utils/fetchApi'
-import React, { Fragment, useEffect, useState } from 'react'
-import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, UserBlock } from '@/components'
-import uuid from 'react-uuid'
+import {
+  CustomButton,
+  PerPage,
+  ShowMore,
+  Sidebar,
+  TableRowLoading,
+  Title,
+  TopBar,
+  Unauthorized,
+  UserBlock,
+} from '@/components'
 import { superAdmins } from '@/constants'
-import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
+import { fetchPurchaseOrders } from '@/utils/fetchApi'
+import { Menu, Transition } from '@headlessui/react'
+import React, { Fragment, useEffect, useState } from 'react'
+import uuid from 'react-uuid'
+import Filters from './Filters'
 // Types
 import type { PurchaseOrderItemTypes, PurchaseOrderTypes } from '@/types'
 
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux'
+import SupplySideBar from '@/components/Sidebars/SupplySideBar'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
-import AddEditModal from './AddEditModal'
-import { ChevronDownIcon, PencilSquareIcon, PrinterIcon } from '@heroicons/react/20/solid'
-import Link from 'next/link'
+import {
+  ChevronDownIcon,
+  PencilSquareIcon,
+  PrinterIcon,
+} from '@heroicons/react/20/solid'
 import { format } from 'date-fns'
-import SupplySideBar from '@/components/Sidebars/SupplySideBar'
 import { jsPDF } from 'jspdf'
 import 'jspdf-autotable'
+import Link from 'next/link'
+import { useDispatch, useSelector } from 'react-redux'
+import AddEditModal from './AddEditModal'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -48,13 +62,22 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchPurchaseOrders({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchPurchaseOrders(
+        { filterKeyword, filterStatus },
+        perPageCount,
+        0
+      )
 
       // update the list in redux
       dispatch(updateList(result.data))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: result.data.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -67,14 +90,23 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchPurchaseOrders({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchPurchaseOrders(
+        { filterKeyword, filterStatus },
+        perPageCount,
+        list.length
+      )
 
       // update the list in redux
       const newList = [...list, ...result.data]
       dispatch(updateList(newList))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: newList.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: newList.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -99,7 +131,7 @@ const Page: React.FC = () => {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: 'a4'
+      format: 'a4',
     })
 
     const pageWidth = doc.internal.pageSize.getWidth()
@@ -111,9 +143,12 @@ const Page: React.FC = () => {
     const titleText = process.env.NEXT_PUBLIC_ORG_NAME ?? ''
     const titleText2 = 'Purchase Order'
     const titleText3 = `${format(new Date(item.date), 'MMMM dd, yyyy')}`
-    const titleWidth = doc.getStringUnitWidth(titleText) * fontSize / doc.internal.scaleFactor
-    const titleWidth2 = doc.getStringUnitWidth(titleText2) * 16 / doc.internal.scaleFactor // font size 16
-    const titleWidth3 = doc.getStringUnitWidth(titleText3) * fontSize / doc.internal.scaleFactor
+    const titleWidth =
+      (doc.getStringUnitWidth(titleText) * fontSize) / doc.internal.scaleFactor
+    const titleWidth2 =
+      (doc.getStringUnitWidth(titleText2) * 16) / doc.internal.scaleFactor // font size 16
+    const titleWidth3 =
+      (doc.getStringUnitWidth(titleText3) * fontSize) / doc.internal.scaleFactor
 
     let currentY = 20
 
@@ -139,19 +174,28 @@ const Page: React.FC = () => {
       .select()
       .eq('purchase_order_id', item.id)
 
-    const data = poItems.map((product: PurchaseOrderItemTypes, index: number) => {
-      return {
-        item_no: index,
-        description: product.product_name,
-        quantity: Number(product.quantity).toLocaleString('en-US'),
-        unit_price: Number(product.price).toLocaleString('en-US'),
-        total: Number(product.total).toLocaleString('en-US')
+    const data = poItems.map(
+      (product: PurchaseOrderItemTypes, index: number) => {
+        return {
+          item_no: index,
+          description: product.product_name,
+          quantity: Number(product.quantity).toLocaleString('en-US'),
+          unit_price: Number(product.price).toLocaleString('en-US'),
+          total: Number(product.total).toLocaleString('en-US'),
+        }
       }
+    )
+
+    const grossTotal = poItems.reduce(
+      (accumulator: number, item: PurchaseOrderItemTypes) =>
+        accumulator + Number(item.total),
+      0
+    )
+
+    data.push({
+      unit_price: 'Total: ',
+      total: grossTotal.toLocaleString('en-US'),
     })
-
-    const grossTotal = poItems.reduce((accumulator: number, item: PurchaseOrderItemTypes) => accumulator + Number(item.total), 0)
-
-    data.push({ unit_price: 'Total: ', total: grossTotal.toLocaleString('en-US') })
 
     // Define the table columns
     const columns = [
@@ -159,18 +203,17 @@ const Page: React.FC = () => {
       { header: 'Description', dataKey: 'description' },
       { header: 'Quantity', dataKey: 'quantity' },
       { header: 'Unit Price', dataKey: 'unit_price' },
-      { header: 'Total', dataKey: 'total' }
+      { header: 'Total', dataKey: 'total' },
     ]
 
     const options = {
       margin: { top: 20 },
       startY: currentY,
-      headStyles: { fillColor: [252, 164, 96] } // Header cell background color (red)
+      headStyles: { fillColor: [252, 164, 96] }, // Header cell background color (red)
     }
 
     // Create a new table object
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+    // @ts-ignore
     doc.autoTable(columns, data, options)
 
     // Save the PDF with a unique name
@@ -187,37 +230,39 @@ const Page: React.FC = () => {
     setList([])
     void fetchData()
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKeyword, perPageCount, filterStatus])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('canvass') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('canvass') && !superAdmins.includes(session.user.email))
+    return <Unauthorized />
 
   return (
     <>
-    <Sidebar>
-      <SupplySideBar/>
-    </Sidebar>
-    <TopBar/>
-    <div className="app__main">
-      <div>
-          <div className='app__title'>
-            <Title title='Purchase Orders'/>
+      <Sidebar>
+        <SupplySideBar />
+      </Sidebar>
+      <TopBar />
+      <div className="app__main">
+        <div>
+          <div className="app__title">
+            <Title title="Purchase Orders" />
             <CustomButton
-              containerStyles='app__btn_green'
-              title='Create New P.O.'
-              btnType='button'
+              containerStyles="app__btn_green"
+              title="Create New P.O."
+              btnType="button"
               handleClick={handleAdd}
             />
           </div>
 
           {/* Filters */}
-          <div className='app__filters'>
+          <div className="app__filters">
             <Filters
               setFilterKeyword={setFilterKeyword}
-              setFilterStatus={setFilterStatus}/>
+              setFilterStatus={setFilterStatus}
+            />
           </div>
 
           {/* Per Page */}
@@ -225,47 +270,40 @@ const Page: React.FC = () => {
             showingCount={resultsCounter.showing}
             resultsCount={resultsCounter.results}
             perPageCount={perPageCount}
-            setPerPageCount={setPerPageCount}/>
+            setPerPageCount={setPerPageCount}
+          />
 
           {/* Main Content */}
           <div>
             <table className="app__table">
               <thead className="app__thead">
-                  <tr>
-                      <th className="hidden md:table-cell app__th pl-4"></th>
-                      <th className="hidden md:table-cell app__th">
-                          PO #
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Description
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Date
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Supplier
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Status
-                      </th>
-                      <th className="hidden md:table-cell app__th"></th>
-                      <th className="hidden md:table-cell app__th">
-                          Added By
-                      </th>
-                  </tr>
+                <tr>
+                  <th className="hidden md:table-cell app__th pl-4"></th>
+                  <th className="hidden md:table-cell app__th">PO #</th>
+                  <th className="hidden md:table-cell app__th">Description</th>
+                  <th className="hidden md:table-cell app__th">Date</th>
+                  <th className="hidden md:table-cell app__th">Supplier</th>
+                  <th className="hidden md:table-cell app__th">Status</th>
+                  <th className="hidden md:table-cell app__th"></th>
+                  <th className="hidden md:table-cell app__th">Added By</th>
+                </tr>
               </thead>
               <tbody>
-                {
-                  !isDataEmpty && list.map((item: PurchaseOrderTypes) => (
+                {!isDataEmpty &&
+                  list.map((item: PurchaseOrderTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
-                      <td
-                        className="w-6 pl-4 app__td">
-                        <Menu as="div" className="app__menu_container">
+                      <td className="w-6 pl-4 app__td">
+                        <Menu
+                          as="div"
+                          className="app__menu_container">
                           <div>
                             <Menu.Button className="app__dropdown_btn">
-                              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                              <ChevronDownIcon
+                                className="h-5 w-5"
+                                aria-hidden="true"
+                              />
                             </Menu.Button>
                           </div>
 
@@ -276,111 +314,117 @@ const Page: React.FC = () => {
                             enterTo="transform opacity-100 scale-100"
                             leave="transition ease-in duration-75"
                             leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                          >
+                            leaveTo="transform opacity-0 scale-95">
                             <Menu.Items className="app__dropdown_items">
                               <div className="py-1">
                                 <Menu.Item>
                                   <div
-                                      onClick={() => handleEdit(item)}
-                                      className='app__dropdown_item'
-                                    >
-                                      <PencilSquareIcon className='w-4 h-4'/>
-                                      <span>Edit Details</span>
-                                    </div>
+                                    onClick={() => handleEdit(item)}
+                                    className="app__dropdown_item">
+                                    <PencilSquareIcon className="w-4 h-4" />
+                                    <span>Edit Details</span>
+                                  </div>
                                 </Menu.Item>
                                 <Menu.Item>
                                   <div
-                                      onClick={async () => await handlePrintPo(item)}
-                                      className='app__dropdown_item'
-                                    >
-                                      <PrinterIcon className='w-4 h-4'/>
-                                      <span>Print P.O.</span>
-                                    </div>
+                                    onClick={async () =>
+                                      await handlePrintPo(item)
+                                    }
+                                    className="app__dropdown_item">
+                                    <PrinterIcon className="w-4 h-4" />
+                                    <span>Print P.O.</span>
+                                  </div>
                                 </Menu.Item>
                               </div>
                             </Menu.Items>
                           </Transition>
                         </Menu>
                       </td>
-                      <th
-                        className="app__th_firstcol">
+                      <th className="app__th_firstcol">
                         {item.po_number}
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
                             <div>
-                            {
-                              item.status === 'Pending approval'
-                                ? <span className='app__status_container_orange'>{item.status}</span>
-                                : <span className='app__status_container_green'>{item.status}</span>
-                            }
+                              {item.status === 'Pending approval' ? (
+                                <span className="app__status_container_orange">
+                                  {item.status}
+                                </span>
+                              ) : (
+                                <span className="app__status_container_green">
+                                  {item.status}
+                                </span>
+                              )}
                             </div>
-                            <div><span className='app_td_mobile_label'>Description:</span> {item.description}</div>
+                            <div>
+                              <span className="app_td_mobile_label">
+                                Description:
+                              </span>{' '}
+                              {item.description}
+                            </div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
-
                       </th>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {item.description}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {format(new Date(item.date), 'MMMM dd, yyyy')}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {item.rdt_suppliers?.name}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        {
-                          item.status === 'Pending approval'
-                            ? <span className='app__status_container_orange'>{item.status}</span>
-                            : <span className='app__status_container_green'>{item.status}</span>
-                        }
+                      <td className="hidden md:table-cell app__td">
+                        {item.status === 'Pending approval' ? (
+                          <span className="app__status_container_orange">
+                            {item.status}
+                          </span>
+                        ) : (
+                          <span className="app__status_container_green">
+                            {item.status}
+                          </span>
+                        )}
                       </td>
-                      <td
-                        className="app__td">
-                        <Link href={`/purchaseorders/${item.id}`} className='app__btn_blue'>
+                      <td className="app__td">
+                        <Link
+                          href={`/purchaseorders/${item.id}`}
+                          className="app__btn_blue">
                           <span>Manage&nbsp;Items</span>
                         </Link>
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        <UserBlock user={item.rdt_users}/>
+                      <td className="hidden md:table-cell app__td">
+                        <UserBlock user={item.rdt_users} />
                       </td>
                     </tr>
-                  ))
-                }
-                { loading && <TableRowLoading cols={8} rows={2}/> }
+                  ))}
+                {loading && (
+                  <TableRowLoading
+                    cols={8}
+                    rows={2}
+                  />
+                )}
               </tbody>
             </table>
-            {
-              (!loading && isDataEmpty) &&
-                <div className='app__norecordsfound'>No records found.</div>
-            }
+            {!loading && isDataEmpty && (
+              <div className="app__norecordsfound">No records found.</div>
+            )}
           </div>
 
           {/* Show More */}
-          {
-            (resultsCounter.results > resultsCounter.showing && !loading) &&
-              <ShowMore
-                handleShowMore={handleShowMore}/>
-          }
+          {resultsCounter.results > resultsCounter.showing && !loading && (
+            <ShowMore handleShowMore={handleShowMore} />
+          )}
+        </div>
       </div>
-    </div>
-    {/* Add/Edit Modal */}
-    {
-      showAddModal && (
+      {/* Add/Edit Modal */}
+      {showAddModal && (
         <AddEditModal
           editData={editData}
-          hideModal={() => setShowAddModal(false)}/>
-      )
-    }
-  </>
+          hideModal={() => setShowAddModal(false)}
+        />
+      )}
+    </>
   )
 }
 export default Page
