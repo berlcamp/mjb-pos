@@ -57,6 +57,7 @@ const Page: React.FC = () => {
 
   // summary
   const [totalSales, setTotalSales] = useState(0)
+  const [totalCost, setTotalCost] = useState(0)
 
   // Redux staff
   const globallist = useSelector((state: any) => state.list.value)
@@ -105,16 +106,35 @@ const Page: React.FC = () => {
         0,
         0
       )
-      const salesTotal = summary.data.reduce(
-        (accumulator, sale: SalesTypes) => {
-          if (sale.status !== 'Cancelled') {
-            return accumulator + Number(sale.total)
-          } else {
-            return accumulator
+      const saleTransactions: TransactionTypes[] = summary.data
+      const salesTotal = saleTransactions
+        .filter((s) => s.status !== 'Cancelled')
+        .reduce((accumulator, sale) => {
+          return accumulator + Number(sale.total)
+        }, 0) // get the sum of total price
+
+      // Calculate the profit
+      let costTotal = 0
+      saleTransactions
+        .filter((s) => s.status !== 'Cancelled')
+        .forEach((s) => {
+          const cart: ProductTypes[] = s.products
+          if (cart && cart.length > 0) {
+            const totalCost = cart.reduce(
+              (accumulator: number, p: ProductTypes) => {
+                if (p.total_cost) {
+                  return accumulator + Number(p.total_cost)
+                } else {
+                  return accumulator
+                }
+              },
+              0
+            ) // get the sum of total cost
+            costTotal += totalCost
           }
-        },
-        0
-      ) // get the sum of total price
+        })
+
+      setTotalCost(costTotal)
       setTotalSales(salesTotal)
     } catch (e) {
       console.error(e)
@@ -312,9 +332,21 @@ const Page: React.FC = () => {
           {/* Totals */}
           <div className="px-4 pb-4 flex items-center justify-end space-x-2">
             <div className="text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg">
+              Total Cost:{' '}
+              <span className="font-bold text-lg">
+                {Number(totalCost).toLocaleString('en-US')}
+              </span>
+            </div>
+            <div className="text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg">
               Total Sales:{' '}
               <span className="font-bold text-lg">
                 {Number(totalSales).toLocaleString('en-US')}
+              </span>
+            </div>
+            <div className="text-xs font-semibold bg-green-100 border border-green-400 px-2 py-px rounded-lg">
+              Total Profit:{' '}
+              <span className="font-bold text-lg">
+                {(totalSales - totalCost).toLocaleString('en-US')}
               </span>
             </div>
           </div>
@@ -340,8 +372,11 @@ const Page: React.FC = () => {
                   <th className="hidden md:table-cell app__th">Status</th>
                   <th className="hidden md:table-cell app__th">Payment Type</th>
                   <th className="hidden md:table-cell app__th">Cash</th>
+                  <th className="hidden md:table-cell app__th">Discount</th>
                   <th className="hidden md:table-cell app__th">Change</th>
                   <th className="hidden md:table-cell app__th">Total Amount</th>
+                  <th className="hidden md:table-cell app__th">Total Cost</th>
+                  <th className="hidden md:table-cell app__th">Profit</th>
                   <th className="hidden md:table-cell app__th">Casher</th>
                 </tr>
               </thead>
@@ -527,6 +562,9 @@ const Page: React.FC = () => {
                         )}
                       </td>
                       <td className="hidden md:table-cell app__td">
+                        {item.discount}
+                      </td>
+                      <td className="hidden md:table-cell app__td">
                         {(item.payment_type === 'cash' ||
                           item.payment_type === 'check') && (
                           <span>
@@ -540,13 +578,40 @@ const Page: React.FC = () => {
                         {item.total}
                       </td>
                       <td className="hidden md:table-cell app__td">
+                        {item.products?.reduce(
+                          (accumulator: number, p: ProductTypes) => {
+                            if (p.total_cost) {
+                              return accumulator + Number(p.total_cost)
+                            } else {
+                              return accumulator
+                            }
+                          },
+                          0
+                        )}
+                      </td>
+                      <td className="hidden md:table-cell app__td">
+                        {item.products
+                          ? Number(item.total) -
+                            item.products?.reduce(
+                              (accumulator: number, p: ProductTypes) => {
+                                if (p.total_cost) {
+                                  return accumulator + Number(p.total_cost)
+                                } else {
+                                  return accumulator
+                                }
+                              },
+                              0
+                            )
+                          : 'N/A'}
+                      </td>
+                      <td className="hidden md:table-cell app__td">
                         <UserBlock user={item.rdt_users} />
                       </td>
                     </tr>
                   ))}
                 {loading && (
                   <TableRowLoading
-                    cols={9}
+                    cols={12}
                     rows={2}
                   />
                 )}

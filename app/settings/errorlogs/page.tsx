@@ -1,16 +1,25 @@
 'use client'
 
-import { fetchErrorLogs } from '@/utils/fetchApi'
-import React, { useEffect, useState } from 'react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, SettingsSideBar } from '@/components'
+import {
+  PerPage,
+  SettingsSideBar,
+  ShowMore,
+  Sidebar,
+  TableRowLoading,
+  Title,
+  TopBar,
+  Unauthorized,
+} from '@/components'
 import { superAdmins } from '@/constants'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
+import { fetchErrorLogs } from '@/utils/fetchApi'
+import React, { useEffect, useState } from 'react'
 
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
+import { useDispatch, useSelector } from 'react-redux'
 
 interface ErrorLogsTypes {
   created_at: string
@@ -44,7 +53,12 @@ const Page: React.FC = () => {
       dispatch(updateList(result.data))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: result.data.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -64,7 +78,12 @@ const Page: React.FC = () => {
       dispatch(updateList(newList))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: newList.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: newList.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -75,7 +94,7 @@ const Page: React.FC = () => {
   // Update list whenever list in redux updates
   useEffect(() => {
     setList(globallist)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globallist])
 
   // Fetch data
@@ -83,24 +102,25 @@ const Page: React.FC = () => {
     setList([])
     void fetchData()
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perPageCount])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('settings') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('settings') && !superAdmins.includes(session.user.email))
+    return <Unauthorized />
 
   return (
     <>
-    <Sidebar>
-      <SettingsSideBar/>
-    </Sidebar>
-    <TopBar/>
-    <div className="app__main">
-      <div>
-          <div className='app__title'>
-            <Title title='Query Error Logs'/>
+      <Sidebar>
+        <SettingsSideBar />
+      </Sidebar>
+      <TopBar />
+      <div className="app__main">
+        <div>
+          <div className="app__title">
+            <Title title="Query Error Logs" />
           </div>
 
           {/* Per Page */}
@@ -108,33 +128,25 @@ const Page: React.FC = () => {
             showingCount={resultsCounter.showing}
             resultsCount={resultsCounter.results}
             perPageCount={perPageCount}
-            setPerPageCount={setPerPageCount}/>
+            setPerPageCount={setPerPageCount}
+          />
 
           {/* Main Content */}
           <div>
             <table className="app__table">
               <thead className="app__thead">
-                  <tr>
-                      <th className="app__th">
-                          System
-                      </th>
-                      <th className="app__th">
-                          Transaction
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Table
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Error
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Data
-                      </th>
-                  </tr>
+                <tr>
+                  <th className="app__th">System</th>
+                  <th className="app__th">Transaction</th>
+                  <th className="hidden md:table-cell app__th">Table</th>
+                  <th className="hidden md:table-cell app__th">Error</th>
+                  <th className="hidden md:table-cell app__th">Data</th>
+                  <th className="hidden md:table-cell app__th">Timestamp</th>
+                </tr>
               </thead>
               <tbody>
-                {
-                  !isDataEmpty && list.map((item, index) => (
+                {!isDataEmpty &&
+                  list.map((item, index) => (
                     <tr
                       key={index}
                       className="app__tr">
@@ -145,35 +157,39 @@ const Page: React.FC = () => {
                         <div>{item.transaction}</div>
                       </td>
                       <td className="hidden md:table-cell app__td">
-                          <div>{item.table}</div>
+                        <div>{item.table}</div>
                       </td>
                       <td className="hidden md:table-cell app__td">
-                          <div>{item.error}</div>
+                        <div>{item.error}</div>
                       </td>
                       <td className="hidden md:table-cell app__td">
-                          <div>{item.data}</div>
+                        <div>{item.data}</div>
+                      </td>
+                      <td className="hidden md:table-cell app__td">
+                        <div>{item.created_at}</div>
                       </td>
                     </tr>
-                  ))
-                }
-                { loading && <TableRowLoading cols={5} rows={2}/> }
+                  ))}
+                {loading && (
+                  <TableRowLoading
+                    cols={5}
+                    rows={2}
+                  />
+                )}
               </tbody>
             </table>
-            {
-              (!loading && isDataEmpty) &&
-                <div className='app__norecordsfound'>No records found.</div>
-            }
+            {!loading && isDataEmpty && (
+              <div className="app__norecordsfound">No records found.</div>
+            )}
           </div>
 
           {/* Show More */}
-          {
-            (resultsCounter.results > resultsCounter.showing && !loading) &&
-              <ShowMore
-                handleShowMore={handleShowMore}/>
-          }
+          {resultsCounter.results > resultsCounter.showing && !loading && (
+            <ShowMore handleShowMore={handleShowMore} />
+          )}
+        </div>
       </div>
-    </div>
-  </>
+    </>
   )
 }
 export default Page

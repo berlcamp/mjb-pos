@@ -1,23 +1,42 @@
 'use client'
 
-import { fetchProducts } from '@/utils/fetchApi'
-import React, { Fragment, useEffect, useState } from 'react'
-import { Menu, Transition } from '@headlessui/react'
-import { Sidebar, PerPage, TopBar, TableRowLoading, ShowMore, Title, Unauthorized, CustomButton, UserBlock, PosSideBar, DeleteModal, ConfirmModal } from '@/components'
-import uuid from 'react-uuid'
+import {
+  ConfirmModal,
+  CustomButton,
+  DeleteModal,
+  PerPage,
+  PosSideBar,
+  ShowMore,
+  Sidebar,
+  TableRowLoading,
+  Title,
+  TopBar,
+  Unauthorized,
+  UserBlock,
+} from '@/components'
 import { superAdmins } from '@/constants'
-import Filters from './Filters'
 import { useFilter } from '@/context/FilterContext'
 import { useSupabase } from '@/context/SupabaseProvider'
+import { fetchProducts } from '@/utils/fetchApi'
+import { Menu, Transition } from '@headlessui/react'
+import React, { Fragment, useEffect, useState } from 'react'
+import uuid from 'react-uuid'
+import Filters from './Filters'
 // Types
 import type { ProductTypes } from '@/types'
 
 // Redux imports
-import { useSelector, useDispatch } from 'react-redux'
 import { updateList } from '@/GlobalRedux/Features/listSlice'
 import { updateResultCounter } from '@/GlobalRedux/Features/resultsCounterSlice'
+import {
+  ArchiveBoxXMarkIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  PencilSquareIcon,
+  TrashIcon,
+} from '@heroicons/react/20/solid'
+import { useDispatch, useSelector } from 'react-redux'
 import AddEditModal from './AddEditModal'
-import { ArchiveBoxXMarkIcon, CheckCircleIcon, ChevronDownIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/20/solid'
 
 const Page: React.FC = () => {
   const [loading, setLoading] = useState(false)
@@ -25,7 +44,8 @@ const Page: React.FC = () => {
 
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showConfirmInactiveModal, setShowConfirmInactiveModal] = useState(false)
+  const [showConfirmInactiveModal, setShowConfirmInactiveModal] =
+    useState(false)
   const [showConfirmActiveModal, setShowConfirmActiveModal] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
   const [editData, setEditData] = useState<ProductTypes | null>(null)
@@ -46,13 +66,22 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchProducts({ filterKeyword, filterStatus }, perPageCount, 0)
+      const result = await fetchProducts(
+        { filterKeyword, filterStatus },
+        perPageCount,
+        0
+      )
 
       // update the list in redux
       dispatch(updateList(result.data))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: result.data.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: result.data.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -65,14 +94,23 @@ const Page: React.FC = () => {
     setLoading(true)
 
     try {
-      const result = await fetchProducts({ filterKeyword, filterStatus }, perPageCount, list.length)
+      const result = await fetchProducts(
+        { filterKeyword, filterStatus },
+        perPageCount,
+        list.length
+      )
 
       // update the list in redux
       const newList = [...list, ...result.data]
       dispatch(updateList(newList))
 
       // Updating showing text in redux
-      dispatch(updateResultCounter({ showing: newList.length, results: result.count ? result.count : 0 }))
+      dispatch(
+        updateResultCounter({
+          showing: newList.length,
+          results: result.count ? result.count : 0,
+        })
+      )
     } catch (e) {
       console.error(e)
     } finally {
@@ -116,7 +154,7 @@ const Page: React.FC = () => {
 
       // Update data in redux
       const items = [...globallist]
-      const updatedList = items.filter(item => item.id !== selectedId)
+      const updatedList = items.filter((item) => item.id !== selectedId)
       dispatch(updateList(updatedList))
 
       // pop up the success message
@@ -138,7 +176,7 @@ const Page: React.FC = () => {
 
       // Update data in redux
       const items = [...globallist]
-      const updatedList = items.filter(item => item.id !== selectedId)
+      const updatedList = items.filter((item) => item.id !== selectedId)
       dispatch(updateList(updatedList))
 
       // pop up the success message
@@ -159,37 +197,39 @@ const Page: React.FC = () => {
     setList([])
     void fetchData()
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterKeyword, perPageCount, filterStatus])
 
   const isDataEmpty = !Array.isArray(list) || list.length < 1 || !list
 
   // Check access from permission settings or Super Admins
-  if (!hasAccess('manage_pos') && !superAdmins.includes(session.user.email)) return <Unauthorized/>
+  if (!hasAccess('manage_pos') && !superAdmins.includes(session.user.email))
+    return <Unauthorized />
 
   return (
     <>
-    <Sidebar>
-      <PosSideBar/>
-    </Sidebar>
-    <TopBar/>
-    <div className="app__main">
-      <div>
-          <div className='app__title'>
-            <Title title='Products'/>
+      <Sidebar>
+        <PosSideBar />
+      </Sidebar>
+      <TopBar />
+      <div className="app__main">
+        <div>
+          <div className="app__title">
+            <Title title="Products" />
             <CustomButton
-              containerStyles='app__btn_green'
-              title='Add New Product'
-              btnType='button'
+              containerStyles="app__btn_green"
+              title="Add New Product"
+              btnType="button"
               handleClick={handleAdd}
             />
           </div>
 
           {/* Filters */}
-          <div className='app__filters'>
+          <div className="app__filters">
             <Filters
               setFilterStatus={setFilterStatus}
-              setFilterKeyword={setFilterKeyword}/>
+              setFilterKeyword={setFilterKeyword}
+            />
           </div>
 
           {/* Per Page */}
@@ -197,49 +237,45 @@ const Page: React.FC = () => {
             showingCount={resultsCounter.showing}
             resultsCount={resultsCounter.results}
             perPageCount={perPageCount}
-            setPerPageCount={setPerPageCount}/>
+            setPerPageCount={setPerPageCount}
+          />
 
           {/* Main Content */}
           <div>
             <table className="app__table">
               <thead className="app__thead">
-                  <tr>
-                      <th className="hidden md:table-cell app__th pl-4"></th>
-                      <th className="hidden md:table-cell app__th">
-                          Product
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Category
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Unit
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Price
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Available Stocks
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Status
-                      </th>
-                      <th className="hidden md:table-cell app__th">
-                          Added By
-                      </th>
-                  </tr>
+                <tr>
+                  <th className="hidden md:table-cell app__th pl-4"></th>
+                  <th className="hidden md:table-cell app__th">Product</th>
+                  <th className="hidden md:table-cell app__th">Category</th>
+                  <th className="hidden md:table-cell app__th">Unit</th>
+                  <th className="hidden md:table-cell app__th">Price</th>
+                  <th className="hidden md:table-cell app__th">
+                    Cost (Capital)
+                  </th>
+                  <th className="hidden md:table-cell app__th">
+                    Available Stocks
+                  </th>
+                  <th className="hidden md:table-cell app__th">Status</th>
+                  <th className="hidden md:table-cell app__th">Added By</th>
+                </tr>
               </thead>
               <tbody>
-                {
-                  !isDataEmpty && list.map((item: ProductTypes) => (
+                {!isDataEmpty &&
+                  list.map((item: ProductTypes) => (
                     <tr
                       key={uuid()}
                       className="app__tr">
-                      <td
-                        className="w-6 pl-4 app__td">
-                        <Menu as="div" className="app__menu_container">
+                      <td className="w-6 pl-4 app__td">
+                        <Menu
+                          as="div"
+                          className="app__menu_container">
                           <div>
                             <Menu.Button className="app__dropdown_btn">
-                              <ChevronDownIcon className="h-5 w-5" aria-hidden="true" />
+                              <ChevronDownIcon
+                                className="h-5 w-5"
+                                aria-hidden="true"
+                              />
                             </Menu.Button>
                           </div>
 
@@ -250,37 +286,52 @@ const Page: React.FC = () => {
                             enterTo="transform opacity-100 scale-100"
                             leave="transition ease-in duration-75"
                             leaveFrom="transform opacity-100 scale-100"
-                            leaveTo="transform opacity-0 scale-95"
-                          >
+                            leaveTo="transform opacity-0 scale-95">
                             <Menu.Items className="app__dropdown_items">
                               <div className="py-1">
                                 <Menu.Item>
-                                  <div onClick={() => handleEdit(item)} className='app__dropdown_item'>
-                                      <PencilSquareIcon className='w-4 h-4'/>
-                                      <span>Edit Details</span>
+                                  <div
+                                    onClick={() => handleEdit(item)}
+                                    className="app__dropdown_item">
+                                    <PencilSquareIcon className="w-4 h-4" />
+                                    <span>Edit Details</span>
                                   </div>
                                 </Menu.Item>
-                                {
-                                  item.status === 'Active' &&
-                                    <Menu.Item>
-                                      <div onClick={() => handleInactive(item.id)} className='app__dropdown_item'>
-                                        <ArchiveBoxXMarkIcon className='w-4 h-4'/>
-                                        <span>Mark as <span className='text-red-500 font-medium'>Inactive</span></span>
-                                      </div>
-                                    </Menu.Item>
-                                }
-                                {
-                                  item.status === 'Inactive' &&
-                                    <Menu.Item>
-                                      <div onClick={() => handleActive(item.id)} className='app__dropdown_item'>
-                                        <CheckCircleIcon className='w-4 h-4'/>
-                                        <span>Mark as <span className='text-green-500 font-medium'>Active</span></span>
-                                      </div>
-                                    </Menu.Item>
-                                }
+                                {item.status === 'Active' && (
+                                  <Menu.Item>
+                                    <div
+                                      onClick={() => handleInactive(item.id)}
+                                      className="app__dropdown_item">
+                                      <ArchiveBoxXMarkIcon className="w-4 h-4" />
+                                      <span>
+                                        Mark as{' '}
+                                        <span className="text-red-500 font-medium">
+                                          Inactive
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </Menu.Item>
+                                )}
+                                {item.status === 'Inactive' && (
+                                  <Menu.Item>
+                                    <div
+                                      onClick={() => handleActive(item.id)}
+                                      className="app__dropdown_item">
+                                      <CheckCircleIcon className="w-4 h-4" />
+                                      <span>
+                                        Mark as{' '}
+                                        <span className="text-green-500 font-medium">
+                                          Active
+                                        </span>
+                                      </span>
+                                    </div>
+                                  </Menu.Item>
+                                )}
                                 <Menu.Item>
-                                  <div onClick={ () => handleDelete(item.id) } className='app__dropdown_item'>
-                                    <TrashIcon className='w-4 h-4'/>
+                                  <div
+                                    onClick={() => handleDelete(item.id)}
+                                    className="app__dropdown_item">
+                                    <TrashIcon className="w-4 h-4" />
                                     <span>Delete</span>
                                   </div>
                                 </Menu.Item>
@@ -289,119 +340,119 @@ const Page: React.FC = () => {
                           </Transition>
                         </Menu>
                       </td>
-                      <th
-                        className="app__th_firstcol">
+                      <th className="app__th_firstcol">
                         {item.description}
                         {/* Mobile View */}
                         <div>
                           <div className="md:hidden app__td_mobile">
-                            <div>Category: {item.rdt_product_categories?.name}</div>
+                            <div>
+                              Category: {item.rdt_product_categories?.name}
+                            </div>
                             <div>Unit: {item.rdt_product_units?.name}</div>
                             <div>Available Stocks: {item.available_stocks}</div>
                             <div>Price: {item.price}</div>
                             <div>
-                            {
-                              item.status === 'Inactive'
-                                ? <span className='app__status_container_red'>Inactive</span>
-                                : <span className='app__status_container_green'>Active</span>
-                            }
+                              {item.status === 'Inactive' ? (
+                                <span className="app__status_container_red">
+                                  Inactive
+                                </span>
+                              ) : (
+                                <span className="app__status_container_green">
+                                  Active
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
                         {/* End - Mobile View */}
-
                       </th>
 
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {item.rdt_product_categories?.name}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {item.rdt_product_units?.name}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
                         {item.price}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
+                      <td className="hidden md:table-cell app__td">
+                        {item.cost}
+                      </td>
+                      <td className="hidden md:table-cell app__td">
                         {item.available_stocks}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        {
-                          item.status === 'Inactive'
-                            ? <span className='app__status_container_red'>Inactive</span>
-                            : <span className='app__status_container_green'>Active</span>
-                        }
+                      <td className="hidden md:table-cell app__td">
+                        {item.status === 'Inactive' ? (
+                          <span className="app__status_container_red">
+                            Inactive
+                          </span>
+                        ) : (
+                          <span className="app__status_container_green">
+                            Active
+                          </span>
+                        )}
                       </td>
-                      <td
-                        className="hidden md:table-cell app__td">
-                        <UserBlock user={item.rdt_users}/>
+                      <td className="hidden md:table-cell app__td">
+                        <UserBlock user={item.rdt_users} />
                       </td>
                     </tr>
-                  ))
-                }
-                { loading && <TableRowLoading cols={8} rows={2}/> }
+                  ))}
+                {loading && (
+                  <TableRowLoading
+                    cols={8}
+                    rows={2}
+                  />
+                )}
               </tbody>
             </table>
-            {
-              (!loading && isDataEmpty) &&
-                <div className='app__norecordsfound'>No records found.</div>
-            }
+            {!loading && isDataEmpty && (
+              <div className="app__norecordsfound">No records found.</div>
+            )}
           </div>
 
           {/* Show More */}
-          {
-            (resultsCounter.results > resultsCounter.showing && !loading) &&
-              <ShowMore
-                handleShowMore={handleShowMore}/>
-          }
+          {resultsCounter.results > resultsCounter.showing && !loading && (
+            <ShowMore handleShowMore={handleShowMore} />
+          )}
+        </div>
       </div>
-    </div>
-    {/* Add/Edit Modal */}
-    {
-      showAddModal && (
+      {/* Add/Edit Modal */}
+      {showAddModal && (
         <AddEditModal
           editData={editData}
-          hideModal={() => setShowAddModal(false)}/>
-      )
-    }
-    {/* Delete Modal */}
-    {
-      showDeleteModal && (
+          hideModal={() => setShowAddModal(false)}
+        />
+      )}
+      {/* Delete Modal */}
+      {showDeleteModal && (
         <DeleteModal
           id={selectedId}
-          table='rdt_products'
-          hideModal={() => setShowDeleteModal(false)}/>
-      )
-    }
-    {/* Confirm (Inactive) Modal */}
-    {
-      showConfirmInactiveModal && (
+          table="rdt_products"
+          hideModal={() => setShowDeleteModal(false)}
+        />
+      )}
+      {/* Confirm (Inactive) Modal */}
+      {showConfirmInactiveModal && (
         <ConfirmModal
-          header='Confirmation'
-          btnText='Confirm'
+          header="Confirmation"
+          btnText="Confirm"
           message="Please confirm this action"
           onConfirm={handleInactiveConfirmed}
           onCancel={() => setShowConfirmInactiveModal(false)}
         />
-      )
-    }
-    {/* Confirm (Active) Modal */}
-    {
-      showConfirmActiveModal && (
+      )}
+      {/* Confirm (Active) Modal */}
+      {showConfirmActiveModal && (
         <ConfirmModal
-          header='Confirmation'
-          btnText='Confirm'
+          header="Confirmation"
+          btnText="Confirm"
           message="Please confirm this action"
           onConfirm={handleActiveConfirmed}
           onCancel={() => setShowConfirmActiveModal(false)}
         />
-      )
-    }
-  </>
+      )}
+    </>
   )
 }
 export default Page

@@ -7,12 +7,19 @@ import { fullTextQuery } from './text-helper'
 
 const supabase = createClientComponentClient()
 
-export async function fetchEmployees (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchEmployees(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_employees')
-      .select('*, rdt_users(name,avatar_url), rdt_departments(id,name), rdt_cash_advances(amount), rdt_payroll_employees(*, rdt_payrolls(reference_code))', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_departments(id,name), rdt_cash_advances(amount), rdt_payroll_employees(*, rdt_payrolls(reference_code))',
+        { count: 'exact' }
+      )
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -49,12 +56,14 @@ export async function fetchEmployees (filters: { filterKeyword?: string, filterS
   }
 }
 
-export async function fetchDepartments (filters: { filterKeyword?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchDepartments(
+  filters: { filterKeyword?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
-    let query = supabase
-      .from('rdt_departments')
-      .select('*', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    let query = supabase.from('rdt_departments').select('*', { count: 'exact' })
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -86,12 +95,15 @@ export async function fetchDepartments (filters: { filterKeyword?: string }, per
   }
 }
 
-export async function fetchFixedDeductions (perPageCount: number, rangeFrom: number) {
+export async function fetchFixedDeductions(
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_fixed_deductions')
       .select('*', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Per Page from context
     const from = rangeFrom
@@ -116,18 +128,29 @@ export async function fetchFixedDeductions (perPageCount: number, rangeFrom: num
   }
 }
 
-export async function fetchCashAdvances (filters: { filterKeyword?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchCashAdvances(
+  filters: { filterKeyword?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_cash_advances')
-      .select('*, rdt_users(name,avatar_url), rdt_employees(firstname,middlename,lastname)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_employees(firstname,middlename,lastname)',
+        { count: 'exact' }
+      )
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      const result = await fetchEmployees({ filterKeyword: filters.filterKeyword }, 9999, 0)
+      const result = await fetchEmployees(
+        { filterKeyword: filters.filterKeyword },
+        9999,
+        0
+      )
       const ids: number[] = []
-      result.data.forEach(employee => {
+      result.data.forEach((employee) => {
         ids.push(employee.id)
       })
 
@@ -157,13 +180,17 @@ export async function fetchCashAdvances (filters: { filterKeyword?: string }, pe
   }
 }
 
-export async function fetchAccounts (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchAccounts(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_users')
       .select('*', { count: 'exact' })
       .neq('email', 'berlcamp@gmail.com')
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -198,11 +225,9 @@ export async function fetchAccounts (filters: { filterKeyword?: string, filterSt
   }
 }
 
-export async function fetchErrorLogs (perPageCount: number, rangeFrom: number) {
+export async function fetchErrorLogs(perPageCount: number, rangeFrom: number) {
   try {
-    let query = supabase
-      .from('query_errors')
-      .select('*', { count: 'exact' })
+    let query = supabase.from('query_errors').select('*', { count: 'exact' })
 
     // Per Page from context
     const from = rangeFrom
@@ -227,16 +252,22 @@ export async function fetchErrorLogs (perPageCount: number, rangeFrom: number) {
   }
 }
 
-export async function fetchProjects (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchProjects(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_projects')
       .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+      query = query.or(
+        `description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`
+      )
     }
 
     // filter status
@@ -269,16 +300,24 @@ export async function fetchProjects (filters: { filterKeyword?: string, filterSt
   }
 }
 
-export async function fetchLocations (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchLocations(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_project_locations')
-      .select('*, rdt_users(name,avatar_url), rdt_projects(name)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select('*, rdt_users(name,avatar_url), rdt_projects(name)', {
+        count: 'exact',
+      })
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+      query = query.or(
+        `description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`
+      )
     }
 
     // filter status
@@ -311,16 +350,22 @@ export async function fetchLocations (filters: { filterKeyword?: string, filterS
   }
 }
 
-export async function fetchSuppliers (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchSuppliers(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_suppliers')
       .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+      query = query.or(
+        `description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`
+      )
     }
 
     // filter status
@@ -353,12 +398,19 @@ export async function fetchSuppliers (filters: { filterKeyword?: string, filterS
   }
 }
 
-export async function fetchProducts (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchProducts(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_products')
-      .select('*, rdt_users(name,avatar_url), rdt_product_categories(name), rdt_product_units(name)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_product_categories(name), rdt_product_units(name)',
+        { count: 'exact' }
+      )
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -397,12 +449,16 @@ export async function fetchProducts (filters: { filterKeyword?: string, filterSt
   }
 }
 
-export async function fetchProductUnits (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchProductUnits(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_product_units')
       .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -439,12 +495,16 @@ export async function fetchProductUnits (filters: { filterKeyword?: string, filt
   }
 }
 
-export async function fetchProductCategories (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchProductCategories(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_product_categories')
       .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -481,16 +541,22 @@ export async function fetchProductCategories (filters: { filterKeyword?: string,
   }
 }
 
-export async function fetchCanvass (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchCanvass(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_canvasses')
       .select('*, rdt_users(name,avatar_url)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      query = query.or(`description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`)
+      query = query.or(
+        `description.ilike.%${filters.filterKeyword}%,name.ilike.%${filters.filterKeyword}%`
+      )
     }
 
     // filter status
@@ -521,12 +587,18 @@ export async function fetchCanvass (filters: { filterKeyword?: string, filterSta
   }
 }
 
-export async function fetchPurchaseOrders (filters: { filterKeyword?: string, filterStatus?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchPurchaseOrders(
+  filters: { filterKeyword?: string; filterStatus?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_purchase_orders')
-      .select('*, rdt_users(name,avatar_url), rdt_suppliers(name)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select('*, rdt_users(name,avatar_url), rdt_suppliers(name)', {
+        count: 'exact',
+      })
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -561,12 +633,24 @@ export async function fetchPurchaseOrders (filters: { filterKeyword?: string, fi
   }
 }
 
-export async function fetchSaleTransactions (filters: { filterKeyword?: string, filterStatus?: string, filterDate?: string, filterCasher?: string, filterPaymentType?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchSaleTransactions(
+  filters: {
+    filterKeyword?: string
+    filterStatus?: string
+    filterDate?: string
+    filterCasher?: string
+    filterPaymentType?: string
+  },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_sale_transactions')
-      .select('*, rdt_users(name,avatar_url), rdt_sales(*, rdt_products(description))', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_sales(*, rdt_products(cost,description))',
+        { count: 'exact' }
+      )
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -599,7 +683,10 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
 
     // filter date
     if (filters.filterDate && filters.filterDate !== '') {
-      query = query.eq('transaction_date', format(new Date(filters.filterDate), 'yyyy-MM-dd'))
+      query = query.eq(
+        'transaction_date',
+        format(new Date(filters.filterDate), 'yyyy-MM-dd')
+      )
     } else {
       const date = format(new Date(), 'yyyy-MM-dd')
       query = query.eq('transaction_date', date)
@@ -640,18 +727,33 @@ export async function fetchSaleTransactions (filters: { filterKeyword?: string, 
   }
 }
 
-export async function fetchSales (filters: { filterKeyword?: string, filterStatus?: string, filterDateFrom?: string, filterDateTo?: string, filterCasher?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchSales(
+  filters: {
+    filterKeyword?: string
+    filterStatus?: string
+    filterDateFrom?: string
+    filterDateTo?: string
+    filterCasher?: string
+  },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_sales')
-      .select('*, rdt_users(name,avatar_url), rdt_products(description), rdt_sale_transactions(*)', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_products(description), rdt_sale_transactions(*)',
+        { count: 'exact' }
+      )
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
-      const { data: products } = await supabase.from('rdt_products').select('id').or(`description.ilike.%${filters.filterKeyword}%`)
+      const { data: products } = await supabase
+        .from('rdt_products')
+        .select('id')
+        .or(`description.ilike.%${filters.filterKeyword}%`)
       const productIds: number[] = []
-      products?.forEach(product => {
+      products?.forEach((product) => {
         productIds.push(product.id)
       })
 
@@ -710,12 +812,19 @@ export async function fetchSales (filters: { filterKeyword?: string, filterStatu
   }
 }
 
-export async function fetchPayrolls (filters: { filterKeyword?: string, filterDate?: string }, perPageCount: number, rangeFrom: number) {
+export async function fetchPayrolls(
+  filters: { filterKeyword?: string; filterDate?: string },
+  perPageCount: number,
+  rangeFrom: number
+) {
   try {
     let query = supabase
       .from('rdt_payrolls')
-      .select('*, rdt_users(name,avatar_url), rdt_payroll_employees(*, rdt_employees(*))', { count: 'exact' })
-      .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+      .select(
+        '*, rdt_users(name,avatar_url), rdt_payroll_employees(*, rdt_employees(*))',
+        { count: 'exact' }
+      )
+    //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
     // Search match
     if (filters.filterKeyword && filters.filterKeyword !== '') {
@@ -753,18 +862,20 @@ export async function fetchPayrolls (filters: { filterKeyword?: string, filterDa
   }
 }
 
-export async function searchActiveEmployees (searchTerm: string, excludedItems: excludedItemsTypes[]) {
-  let query = supabase
-    .from('rdt_employees')
-    .select()
-    .eq('status', 'Active')
-    .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+export async function searchActiveEmployees(
+  searchTerm: string,
+  excludedItems: excludedItemsTypes[]
+) {
+  let query = supabase.from('rdt_employees').select().eq('status', 'Active')
+  //.eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
 
   // Search match
-  query = query.or(`firstname.ilike.%${searchTerm}%,middlename.ilike.%${searchTerm}%,lastname.ilike.%${searchTerm}%`)
+  query = query.or(
+    `firstname.ilike.%${searchTerm}%,middlename.ilike.%${searchTerm}%,lastname.ilike.%${searchTerm}%`
+  )
 
   // Excluded already selected items
-  excludedItems.forEach(item => {
+  excludedItems.forEach((item) => {
     query = query.neq('id', item.id)
   })
 

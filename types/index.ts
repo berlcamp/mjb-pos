@@ -1,4 +1,4 @@
-import type { ReactNode, MouseEventHandler } from 'react'
+import type { MouseEventHandler, ReactNode } from 'react'
 
 export interface SelectUserNamesProps {
   settingsData: any[]
@@ -133,7 +133,9 @@ export interface ProductTypes {
   available_stocks: string
   quantity: number
   price: string
+  cost: string
   total: number
+  total_cost: number
   created_by: string
   rdt_users: AccountTypes
   rdt_product_categories: ProductCategoryTypes
@@ -249,6 +251,8 @@ export interface TransactionTypes {
   payment_type: string
   status: string
   transaction_date: string
+  products: ProductTypes[]
+  discount: string
 }
 
 export interface DepartmentTypes {

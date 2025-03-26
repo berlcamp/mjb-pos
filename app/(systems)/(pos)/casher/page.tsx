@@ -1,4 +1,4 @@
-"use client";
+'use client'
 import {
   ConfirmModal,
   CustomButton,
@@ -6,75 +6,75 @@ import {
   Sidebar,
   TopBar,
   Unauthorized,
-} from "@/components";
-import { superAdmins } from "@/constants";
-import { useFilter } from "@/context/FilterContext";
-import { useSupabase } from "@/context/SupabaseProvider";
-import type { ProductTypes } from "@/types";
-import { fullTextQuery } from "@/utils/text-helper";
+} from '@/components'
+import { superAdmins } from '@/constants'
+import { useFilter } from '@/context/FilterContext'
+import { useSupabase } from '@/context/SupabaseProvider'
+import type { ProductTypes } from '@/types'
+import { fullTextQuery } from '@/utils/text-helper'
 import {
   MinusCircleIcon,
   PlusCircleIcon,
   XMarkIcon,
-} from "@heroicons/react/20/solid";
-import { useState } from "react";
-import uuid from "react-uuid";
+} from '@heroicons/react/20/solid'
+import React, { useState } from 'react'
+import uuid from 'react-uuid'
 
 const Page: React.FC = () => {
-  const [search, setSearch] = useState("");
-  const [searching, setSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<ProductTypes[] | []>([]);
-  const [cart, setCart] = useState<ProductTypes[] | []>([]);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [cash, setCash] = useState("");
-  const [terms, setTerms] = useState("0");
-  const [checkDate, setCheckDate] = useState("");
-  const [customerName, setCustomerName] = useState("");
-  const [change, setChange] = useState(0);
-  const [paymentType, setPaymentType] = useState("cash");
+  const [search, setSearch] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<ProductTypes[] | []>([])
+  const [cart, setCart] = useState<ProductTypes[] | []>([])
+  const [cartTotal, setCartTotal] = useState(0)
+  const [cartTotalCost, setCartTotalCost] = useState(0)
+  const [cash, setCash] = useState('')
+  const [terms, setTerms] = useState('0')
+  const [checkDate, setCheckDate] = useState('')
+  const [customerName, setCustomerName] = useState('')
+  const [change, setChange] = useState(0)
+  const [discount, setDiscount] = useState('')
+  const [paymentType, setPaymentType] = useState('cash')
 
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] = useState(false)
   const [showConfirmCompleteModal, setShowConfirmCompleteModal] =
-    useState(false);
-  const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
+    useState(false)
+  const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false)
 
-  const [errorCustomer, setErrorCustomer] = useState("");
-  const [errorDate, setErrorDate] = useState("");
+  const [errorCustomer, setErrorCustomer] = useState('')
+  const [errorDate, setErrorDate] = useState('')
 
-  const { supabase, session } = useSupabase();
-  const { setToast, hasAccess } = useFilter();
+  const { supabase, session } = useSupabase()
+  const { setToast, hasAccess } = useFilter()
 
   const handleSearch = async (text: string) => {
-    setSearch(text);
+    setSearch(text)
 
     if (text.trim().length < 3) {
-      return;
+      return
     }
 
-    setSearching(true);
+    setSearching(true)
 
     try {
       const { data: results, error } = await supabase
-        .from("rdt_products")
-        .select("*, rdt_product_categories(name), rdt_product_units(name)")
-        .eq("org_id", process.env.NEXT_PUBLIC_ORG_ID)
-        .eq("status", "Active")
+        .from('rdt_products')
+        .select('*, rdt_product_categories(name), rdt_product_units(name)')
+        .eq('status', 'Active')
         .or(`description.ilike.%${text}%`)
-        .limit(10);
+        .limit(10)
 
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(error.message)
 
-      const searchQuery: string = fullTextQuery(text);
+      const searchQuery: string = fullTextQuery(text)
 
       const { data: results2, error: error2 } = await supabase
-        .from("rdt_products")
-        .select("*, rdt_product_categories(name), rdt_product_units(name)")
-        .eq("org_id", process.env.NEXT_PUBLIC_ORG_ID)
-        .eq("status", "Active")
-        .textSearch("fts", searchQuery)
-        .limit(10);
+        .from('rdt_products')
+        .select('*, rdt_product_categories(name), rdt_product_units(name)')
+        .eq('status', 'Active')
+        .textSearch('fts', searchQuery)
+        .limit(10)
 
-      if (error2) throw new Error(error2.message);
+      if (error2) throw new Error(error2.message)
 
       // remove duplicate values
       const resultsMerged = [
@@ -83,279 +83,363 @@ const Page: React.FC = () => {
           (item2: ProductTypes) =>
             !results.some((item1: ProductTypes) => item1.id === item2.id)
         ),
-      ];
+      ]
 
       // exlude the products that is already on cart
       const resultsMergedFilterd = resultsMerged.filter(
         (item) => !cart.some((cartItem) => cartItem.id === item.id)
-      );
+      )
 
       // display to results list
-      setSearchResults(resultsMergedFilterd);
-      setSearching(false);
+      setSearchResults(resultsMergedFilterd)
+      setSearching(false)
     } catch (e) {
-      console.error(e);
+      console.error(e)
     }
-  };
+  }
 
   const handleClear = () => {
-    setSearch("");
-    setSearchResults([]);
-  };
+    setSearch('')
+    setSearchResults([])
+  }
 
   const handleAddToCart = (product: ProductTypes) => {
-    if (Number(product.available_stocks) < 1) return;
+    if (Number(product.available_stocks) < 1) return
 
     const productUpdated = {
       ...product,
       uuid: uuid(),
       quantity: 1,
       total: Number(product.price),
-    };
-    setCart([...cart, productUpdated]);
-    const total = cartTotal + Number(product.price);
-    setCartTotal(total);
-    handleTotalChange(total);
-    handleClear();
-  };
+    }
+
+    setCart([...cart, productUpdated])
+    const total = cartTotal + Number(product.price)
+    const totalCost = cartTotalCost + Number(product.cost)
+    setCartTotal(total)
+    setCartTotalCost(totalCost)
+    handleTotalChange(total)
+    handleClear()
+  }
 
   const handleRemoveFromCart = (product: ProductTypes) => {
     const cartUpdated = cart.filter(
       (c: ProductTypes) => c.uuid !== product.uuid
-    );
-    const total = cartTotal - Number(product.total);
-    setCartTotal(total);
-    handleTotalChange(total);
-    setCart(cartUpdated);
-  };
+    )
+    const total = cartTotal - Number(product.total)
+    const totalCost = cartTotalCost - Number(product.total)
+    setCartTotal(total)
+    setCartTotalCost(totalCost)
+    handleTotalChange(total)
+    setCart(cartUpdated)
+  }
 
   const handleChangeQuantity = (value: string, product: ProductTypes) => {
-    const qty = Number(value);
-    if (Number(product.available_stocks) < qty || qty < 0) return; // return if it exceeds available stocks
+    const qty = Number(value)
+    if (Number(product.available_stocks) < qty || qty < 0) return // return if it exceeds available stocks
 
     const updatedCart = cart.map((p: ProductTypes) => {
       if (p.uuid === product.uuid) {
-        return { ...p, quantity: qty, total: Number(product.price) * qty };
+        return {
+          ...p,
+          quantity: qty,
+          total: Number(product.price) * qty,
+          total_cost: Number(product.cost) * qty,
+        }
       }
-      return p;
-    });
-    setCart(updatedCart);
+      return p
+    })
+    setCart(updatedCart)
     const total = updatedCart.reduce(
       (accumulator: number, p: ProductTypes) => accumulator + Number(p.total),
       0
-    ); // get the sum of total price
-    setCartTotal(total);
-    handleTotalChange(total);
-  };
+    ) // get the sum of total price
+    const totalCost = updatedCart.reduce(
+      (accumulator: number, p: ProductTypes) =>
+        accumulator + Number(p.total_cost),
+      0
+    ) // get the sum of total cost
+    setCartTotal(total)
+    setCartTotalCost(totalCost)
+
+    // Reset checkout box
+    handleTotalChange(total)
+  }
 
   const handleAddQuantity = (product: ProductTypes) => {
-    const qty = product.quantity + 1;
-    if (Number(product.available_stocks) < qty || qty < 0) return; // return if it exceeds available stocks
+    const qty = product.quantity + 1
+    if (Number(product.available_stocks) < qty || qty < 0) return // return if it exceeds available stocks
 
     const updatedCart = cart.map((p: ProductTypes) => {
       if (p.uuid === product.uuid) {
-        return { ...p, quantity: qty, total: Number(product.price) * qty };
-      }
-      return p;
-    });
-    setCart(updatedCart);
-    const total = cartTotal + Number(product.price);
-    setCartTotal(total);
-    handleTotalChange(total);
-  };
-
-  const handleDeductQuantity = (product: ProductTypes) => {
-    if (product.quantity - 1 < 0) return;
-
-    const qty = product.quantity - 1;
-    const updatedCart = cart.map((p: ProductTypes) => {
-      if (p.uuid === product.uuid) {
-        return { ...p, quantity: qty, total: Number(product.price) * qty };
-      }
-      return p;
-    });
-    setCart(updatedCart);
-    const total = cartTotal - Number(product.price);
-    setCartTotal(total);
-    handleTotalChange(total);
-  };
-
-  const handleTotalChange = (total: number) => {
-    const chnge = Number(cash) - total;
-    if (chnge >= 0) {
-      setChange(chnge);
-    } else {
-      setChange(0);
-    }
-  };
-
-  const handleConfirmComplete = () => {
-    setErrorCustomer("");
-    setErrorDate("");
-    if (customerName === "" || (paymentType === "check" && checkDate === "")) {
-      if (customerName === "") {
-        setErrorCustomer("Customer Name is required.");
-      }
-      if (paymentType === "check" && checkDate === "") {
-        setErrorDate("Check Date is required.");
-      }
-      return;
-    }
-    setShowConfirmCompleteModal(true);
-  };
-
-  const handleConfirmCancel = () => {
-    setShowConfirmCancelModal(true);
-  };
-
-  const handleCompletePurchase = async () => {
-    if (saving) return;
-
-    setSaving(true);
-    const productIds = cart.map((product: ProductTypes) => product.id);
-    try {
-      const { data: products, error } = await supabase
-        .from("rdt_products")
-        .select("id, available_stocks")
-        .eq("org_id", process.env.NEXT_PUBLIC_ORG_ID)
-        .in("id", productIds);
-
-      if (error) {
-        // log the error to database
-        await supabase.from("query_errors").insert({
-          system: "mjb",
-          transaction: "select",
-          table: "rd_products",
-          data: JSON.stringify(productIds),
-          error: error.message,
-        });
-        throw new Error(error.message);
-      }
-
-      const productsUpdate = products.map((product: ProductTypes) => {
-        // get the cart item
-        const cartItem = cart.find(
-          (c) => c.id.toString() === product.id.toString()
-        );
-        // and create an array to update the available stocks of the product from database
         return {
-          id: product.id,
-          available_stocks:
-            Number(product.available_stocks) -
-            (cartItem !== undefined ? cartItem.quantity : 0),
-        };
-      });
-
-      if (session.user.email !== "berlcamp@gmail.com") {
-        // update the available stock on products database
-        const { error: error2 } = await supabase
-          .from("rdt_products")
-          .upsert(productsUpdate);
-
-        if (error2) {
-          // log the error to database
-          await supabase.from("query_errors").insert({
-            system: "mjb",
-            transaction: "upsert",
-            table: "rd_products",
-            data: JSON.stringify(productsUpdate),
-            error: error2.message,
-          });
-          throw new Error(error2.message);
+          ...p,
+          quantity: qty,
+          total: Number(product.price) * qty,
+          total_cost: Number(product.cost) * qty,
         }
       }
+      return p
+    })
+    setCart(updatedCart)
+    const total = cartTotal + Number(product.price)
+    const totalCost = cartTotalCost + Number(product.cost)
+    setCartTotal(total)
+    setCartTotalCost(totalCost)
+    handleTotalChange(total)
+  }
 
-      // store to sales transaction
-      const { data: transaction, error: error3 } = await supabase
-        .from("rdt_sale_transactions")
-        .insert({
-          casher_id: session.user.id,
-          customer_name: customerName,
-          total: cartTotal,
-          org_id: process.env.NEXT_PUBLIC_ORG_ID,
-          cash,
-          terms,
-          payment_type: paymentType,
-          check_date: checkDate,
-        })
-        .select();
+  const handleDeductQuantity = (product: ProductTypes) => {
+    if (product.quantity - 1 < 0) return
 
-      if (error3) {
-        // log the error to database
-        await supabase.from("query_errors").insert({
-          system: "mjb",
-          transaction: "insert",
-          table: "rdt_sale_transactions",
-          data: JSON.stringify({
-            casher_id: session.user.id,
-            customer_name: customerName,
-            total: cartTotal,
-            org_id: process.env.NEXT_PUBLIC_ORG_ID,
-            cash,
-            terms,
-            payment_type: paymentType,
-          }),
-          error: error3.message,
-        });
-        throw new Error(error3.message);
+    const qty = product.quantity - 1
+    const updatedCart = cart.map((p: ProductTypes) => {
+      if (p.uuid === product.uuid) {
+        return { ...p, quantity: qty, total: Number(product.price) * qty }
       }
+      return p
+    })
+    setCart(updatedCart)
 
-      // store each product to sales database
-      const salesData = cart.map((product: ProductTypes) => {
-        return {
-          product_id: product.id,
-          quantity: product.quantity,
-          casher_id: session.user.id,
-          unit_price: product.price,
-          total: product.total,
-          sale_transaction_id: transaction[0].id,
-          org_id: process.env.NEXT_PUBLIC_ORG_ID,
-        };
-      });
-      const { error: error4 } = await supabase
-        .from("rdt_sales")
-        .insert(salesData);
+    const total = cartTotal - Number(product.price)
+    const totalCost = cartTotalCost - Number(product.cost)
+    setCartTotal(total)
+    setCartTotalCost(totalCost)
 
-      if (error4) {
-        // log the error to database
-        await supabase.from("query_errors").insert({
-          system: "mjb",
-          transaction: "insert",
-          table: "rdt_sales",
-          data: JSON.stringify(salesData),
-          error: error4.message,
-        });
-        throw new Error(error4.message);
-      }
+    handleTotalChange(total)
+  }
 
-      setToast("success", "Purchase completed successfully.");
-      handleReset(); // reset the form
-      setSaving(false);
-    } catch (e) {
-      console.error("purchase error", e);
+  const handleTotalChange = (total: number) => {
+    const chnge = Number(cash) - (total - Number(discount))
+    if (chnge >= 0) {
+      setChange(chnge)
+    } else {
+      setChange(0)
     }
-  };
+  }
+
+  const handleConfirmComplete = () => {
+    setErrorCustomer('')
+    setErrorDate('')
+    if (customerName === '' || (paymentType === 'check' && checkDate === '')) {
+      if (customerName === '') {
+        setErrorCustomer('Customer Name is required.')
+      }
+      if (paymentType === 'check' && checkDate === '') {
+        setErrorDate('Check Date is required.')
+      }
+      return
+    }
+    setShowConfirmCompleteModal(true)
+  }
+
+  const handleConfirmCancel = () => {
+    setShowConfirmCancelModal(true)
+  }
+
+  // const handleCompletePurchase = async () => {
+  //   if (saving) return
+
+  //   setSaving(true)
+
+  //   const productIds = cart.map((product: ProductTypes) => product.id)
+
+  //   try {
+  //     const { data: products, error } = await supabase
+  //       .from('rdt_products')
+  //       .select('id, available_stocks')
+  //       .eq('org_id', process.env.NEXT_PUBLIC_ORG_ID)
+  //       .in('id', productIds)
+
+  //     if (error) {
+  //       // log the error to database
+  //       await supabase.from('query_errors').insert({
+  //         system: 'mjb',
+  //         transaction: 'select',
+  //         table: 'rd_products',
+  //         data: JSON.stringify(productIds),
+  //         error: error.message,
+  //       })
+  //       throw new Error(error.message)
+  //     }
+
+  //     const productsUpdate = products.map((product: ProductTypes) => {
+  //       // get the cart item
+  //       const cartItem = cart.find(
+  //         (c) => c.id.toString() === product.id.toString()
+  //       )
+  //       // and create an array to update the available stocks of the product from database
+  //       return {
+  //         id: product.id,
+  //         available_stocks:
+  //           Number(product.available_stocks) -
+  //           (cartItem !== undefined ? cartItem.quantity : 0),
+  //       }
+  //     })
+
+  //     if (session.user.email !== 'berlcamp@gmail.com') {
+  //       // update the available stock on products database
+  //       const { error: error2 } = await supabase
+  //         .from('rdt_products')
+  //         .upsert(productsUpdate)
+
+  //       if (error2) {
+  //         // log the error to database
+  //         await supabase.from('query_errors').insert({
+  //           system: 'mjb',
+  //           transaction: 'upsert purchased products',
+  //           table: 'rd_products',
+  //           data: JSON.stringify(productsUpdate),
+  //           error: error2.message,
+  //         })
+  //         throw new Error(error2.message)
+  //       }
+  //     }
+
+  //     // store to sales transaction
+  //     const { data: transaction, error: error3 } = await supabase
+  //       .from('rdt_sale_transactions')
+  //       .insert({
+  //         casher_id: session.user.id,
+  //         customer_name: customerName,
+  //         total: cartTotal,
+  //         discount: discount,
+  //         org_id: process.env.NEXT_PUBLIC_ORG_ID,
+  //         cash,
+  //         terms,
+  //         payment_type: paymentType,
+  //         check_date: checkDate,
+  //         products: cart,
+  //       })
+  //       .select()
+
+  //     if (error3) {
+  //       // log the error to database
+  //       await supabase.from('query_errors').insert({
+  //         system: 'mjb',
+  //         transaction: 'insert sale transaction',
+  //         table: 'rdt_sale_transactions',
+  //         data: JSON.stringify({
+  //           casher_id: session.user.id,
+  //           customer_name: customerName,
+  //           total: cartTotal,
+  //           org_id: process.env.NEXT_PUBLIC_ORG_ID,
+  //           cash,
+  //           terms,
+  //           payment_type: paymentType,
+  //         }),
+  //         error: error3.message,
+  //       })
+  //       throw new Error(error3.message)
+  //     }
+
+  //     // store each product to sales database
+  //     const salesData = cart.map((product: ProductTypes) => {
+  //       return {
+  //         product_id: product.id,
+  //         quantity: product.quantity,
+  //         casher_id: session.user.id,
+  //         unit_price: product.price,
+  //         total: product.total,
+  //         sale_transaction_id: transaction[0].id,
+  //         org_id: process.env.NEXT_PUBLIC_ORG_ID,
+  //       }
+  //     })
+  //     const { error: error4 } = await supabase
+  //       .from('rdt_sales')
+  //       .insert(salesData)
+
+  //     if (error4) {
+  //       // log the error to database
+  //       await supabase.from('query_errors').insert({
+  //         system: 'mjb',
+  //         transaction: 'insert sold products',
+  //         table: 'rdt_sales',
+  //         data: JSON.stringify(salesData),
+  //         error: error4.message,
+  //       })
+  //       throw new Error(error4.message)
+  //     }
+
+  //     setToast('success', 'Purchase completed successfully.')
+  //     handleReset() // reset the form
+  //     setSaving(false)
+  //   } catch (e) {
+  //     console.error('purchase error', e)
+  //   }
+  // }
+
+  const handleCompletePurchase = async () => {
+    if (saving) return
+    setSaving(true)
+
+    try {
+      const formattedCheckDate =
+        checkDate && checkDate.trim() !== '' ? checkDate : null
+
+      const cartWithIntegers = cart.map((item) => ({
+        ...item,
+        id: Number(item.id), // Ensure product IDs are integers
+        quantity: Number(item.quantity),
+        price: Number(item.price),
+        total: Number(item.total),
+      }))
+
+      const { data, error } = await supabase.rpc('complete_purchase', {
+        _casher_id: session.user.id,
+        _customer_name: customerName,
+        _cart: cartWithIntegers,
+        _cart_total: cartTotal,
+        _discount: Number(discount),
+        _cash: Number(cash),
+        _terms: terms,
+        _payment_type: paymentType,
+        _check_date: formattedCheckDate, // Only pass this if not empty
+      })
+
+      if (error || !data || data?.status === 'error') {
+        await supabase.from('query_errors').insert({
+          system: 'mjb',
+          transaction: 'complete purchase',
+          table: 'multiple (rdt_products, rdt_sale_transactions, rdt_sales)',
+          data: JSON.stringify(cart),
+          error: error?.message || data?.message || 'Unknown error',
+        })
+
+        throw new Error(
+          error?.message || data?.message || 'Unknown error occurred'
+        )
+      }
+
+      setToast('success', 'Purchase completed successfully.')
+      handleReset()
+    } catch (e) {
+      console.error('Purchase error', e)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const handleReset = () => {
     // reset all
-    setCart([]);
-    setCartTotal(0);
-    setCash("");
-    setChange(0);
-    setCustomerName("");
-    setSearch("");
-    setSearchResults([]);
+    setCart([])
+    setCartTotal(0)
+    setCash('')
+    setChange(0)
+    setCustomerName('')
+    setSearch('')
+    setSearchResults([])
 
-    setShowConfirmCancelModal(false);
-    setShowConfirmCompleteModal(false);
-  };
+    setShowConfirmCancelModal(false)
+    setShowConfirmCompleteModal(false)
+  }
 
   // Check access from permission settings or Super Admins
   if (
-    !(hasAccess("manage_pos") || hasAccess("cashers")) &&
+    !(hasAccess('manage_pos') || hasAccess('cashers')) &&
     !superAdmins.includes(session.user.email)
   )
-    return <Unauthorized />;
+    return <Unauthorized />
 
   return (
     <>
@@ -380,13 +464,11 @@ const Page: React.FC = () => {
                       aria-hidden="true"
                       fill="currentColor"
                       viewBox="0 0 20 20"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
+                      xmlns="http://www.w3.org/2000/svg">
                       <path
                         fillRule="evenodd"
                         d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                        clipRule="evenodd"
-                      ></path>
+                        clipRule="evenodd"></path>
                     </svg>
                   </div>
                   <input
@@ -398,8 +480,7 @@ const Page: React.FC = () => {
                   />
                   <button
                     onClick={handleClear}
-                    className="px-2 py-2 ml-2 text-sm rounded-lg text-white bg-gray-700 whitespace-nowrap"
-                  >
+                    className="px-2 py-2 ml-2 text-sm rounded-lg text-white bg-gray-700 whitespace-nowrap">
                     Clear Search
                   </button>
                 </div>
@@ -408,18 +489,23 @@ const Page: React.FC = () => {
                     <table className="absolute z-10 w-full text-left shadow-md text-xs border border-gray-200">
                       <thead>
                         <tr className="bg-gray-700 text-white border-b">
-                          <th scope="row" className="py-2 px-6 font-medium">
+                          <th
+                            scope="row"
+                            className="py-2 px-6 font-medium">
                             Product
                           </th>
                           <td className="py-2 px-6">Unit</td>
                           <td className="py-2 px-6">Available Stocks</td>
+                          <td className="py-2 px-6">Cost</td>
                           <td className="py-2 px-6">Price</td>
                         </tr>
                       </thead>
                       <tbody>
                         {searching ? (
                           <tr className="bg-gray-600 text-white border-b hover:bg-gray-500 cursor-pointer">
-                            <td className="py-2 text-center" colSpan={4}>
+                            <td
+                              className="py-2 text-center"
+                              colSpan={4}>
                               Searching
                             </td>
                           </tr>
@@ -427,7 +513,9 @@ const Page: React.FC = () => {
                           <>
                             {searchResults.length === 0 ? (
                               <tr className="bg-gray-600 text-white border-b hover:bg-gray-500 cursor-pointer">
-                                <td className="py-2 text-center" colSpan={4}>
+                                <td
+                                  className="py-2 text-center"
+                                  colSpan={5}>
                                   No product match found.
                                 </td>
                               </tr>
@@ -438,12 +526,10 @@ const Page: React.FC = () => {
                                     <tr
                                       key={index}
                                       onClick={() => handleAddToCart(product)}
-                                      className="bg-gray-600 text-white border-b hover:bg-gray-500 cursor-pointer"
-                                    >
+                                      className="bg-gray-600 text-white border-b hover:bg-gray-500 cursor-pointer">
                                       <th
                                         scope="row"
-                                        className="py-2 px-6 font-medium"
-                                      >
+                                        className="py-2 px-6 font-medium">
                                         <div className="text-sm">
                                           {product.description}
                                         </div>
@@ -466,14 +552,21 @@ const Page: React.FC = () => {
                                           <span>
                                             {Number(
                                               product.available_stocks
-                                            ).toLocaleString("en-US")}
+                                            ).toLocaleString('en-US')}
                                           </span>
                                         )}
                                       </td>
                                       <td className="py-2 px-6">
                                         <span className="font-bold text-sm">
+                                          {Number(product.cost).toLocaleString(
+                                            'en-US'
+                                          )}
+                                        </span>
+                                      </td>
+                                      <td className="py-2 px-6">
+                                        <span className="font-bold text-sm">
                                           {Number(product.price).toLocaleString(
-                                            "en-US"
+                                            'en-US'
                                           )}
                                         </span>
                                       </td>
@@ -502,6 +595,7 @@ const Page: React.FC = () => {
                           <th className="hidden md:table-cell app__th">
                             Product
                           </th>
+                          <th className="hidden md:table-cell app__th">Cost</th>
                           <th className="hidden md:table-cell app__th">Unit</th>
                           <th className="hidden md:table-cell app__th">
                             Price
@@ -516,101 +610,127 @@ const Page: React.FC = () => {
                       </thead>
                       <tbody>
                         {cart.map((product: ProductTypes, index: number) => (
-                          <tr key={index} className="app__tr">
-                            <td className="app__td">
-                              <XMarkIcon
-                                onClick={() => handleRemoveFromCart(product)}
-                                className="w-5 h-5 text-red-800 bg-red-200 border rounded-sm border-red-600 cursor-pointer"
-                              />
-                            </td>
-                            <th className="app__td">
-                              <div className="text-sm">
-                                {product.description}
-                              </div>
-                              <div className="text-[10px] font-light">
-                                Available Stocks: {product.available_stocks}
-                              </div>
-                              {/* Mobile View */}
-                              <div>
-                                <div className="md:hidden app__td_mobile">
-                                  <div>
-                                    Unit: {product.rdt_product_units?.name}
-                                  </div>
-                                  <div>Price: {product.price}</div>
-                                  <div>Quantity:</div>
-                                  <div className="flex items-center justify-start space-x-2">
-                                    <PlusCircleIcon
-                                      onClick={() => handleAddQuantity(product)}
-                                      className="w-6 h-6 text-green-600 cursor-pointer"
-                                    />
-                                    <input
-                                      type="number"
-                                      onChange={(e) =>
-                                        handleChangeQuantity(
-                                          e.target.value,
-                                          product
-                                        )
-                                      }
-                                      className="font-bold text-lg outline-none appearance-none w-14"
-                                      value={product.quantity}
-                                    />
-                                    <MinusCircleIcon
-                                      onClick={() =>
-                                        handleDeductQuantity(product)
-                                      }
-                                      className="w-6 h-6 text-cyan-900 cursor-pointer"
-                                    />
-                                  </div>
-                                  <div>
-                                    Total:{" "}
-                                    {Number(product.total).toLocaleString(
-                                      "en-US"
-                                    )}
+                          <React.Fragment key={index}>
+                            <tr className="app__tr">
+                              <td className="app__td">
+                                <XMarkIcon
+                                  onClick={() => handleRemoveFromCart(product)}
+                                  className="w-5 h-5 text-red-800 bg-red-200 border rounded-sm border-red-600 cursor-pointer"
+                                />
+                              </td>
+                              <th className="app__td">
+                                <div className="text-sm">
+                                  {product.description}
+                                </div>
+                                <div className="text-[10px] font-light">
+                                  Available Stocks: {product.available_stocks}
+                                </div>
+                                {/* Mobile View */}
+                                <div>
+                                  <div className="md:hidden app__td_mobile">
+                                    <div>
+                                      Unit: {product.rdt_product_units?.name}
+                                    </div>
+                                    <div>Price: {product.price}</div>
+                                    <div>Quantity:</div>
+                                    <div className="flex items-center justify-start space-x-2">
+                                      <PlusCircleIcon
+                                        onClick={() =>
+                                          handleAddQuantity(product)
+                                        }
+                                        className="w-6 h-6 text-green-600 cursor-pointer"
+                                      />
+                                      <input
+                                        type="number"
+                                        onChange={(e) =>
+                                          handleChangeQuantity(
+                                            e.target.value,
+                                            product
+                                          )
+                                        }
+                                        className="font-bold text-lg outline-none appearance-none w-14"
+                                        value={product.quantity}
+                                      />
+                                      <MinusCircleIcon
+                                        onClick={() =>
+                                          handleDeductQuantity(product)
+                                        }
+                                        className="w-6 h-6 text-cyan-900 cursor-pointer"
+                                      />
+                                    </div>
+                                    <div>
+                                      Total:{' '}
+                                      {Number(product.total).toLocaleString(
+                                        'en-US'
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              {/* End - Mobile View */}
-                            </th>
-                            <td className="hidden md:table-cell app__td">
-                              <span className="text-lg">
-                                {product.rdt_product_units?.name}
-                              </span>
-                            </td>
-                            <td className="hidden md:table-cell app__td">
-                              <span className="text-lg">
-                                {Number(product.price).toLocaleString("en-US")}
-                              </span>
-                            </td>
-                            <td className="hidden md:table-cell app__td">
-                              <div className="flex items-center justify-center space-x-2">
-                                <PlusCircleIcon
-                                  onClick={() => handleAddQuantity(product)}
-                                  className="w-6 h-6 text-green-600 cursor-pointer"
-                                />
-                                <input
-                                  type="number"
-                                  onChange={(e) =>
-                                    handleChangeQuantity(
-                                      e.target.value,
-                                      product
-                                    )
-                                  }
-                                  className="font-bold text-lg outline-none appearance-none w-14"
-                                  value={product.quantity}
-                                />
-                                <MinusCircleIcon
-                                  onClick={() => handleDeductQuantity(product)}
-                                  className="w-6 h-6 text-cyan-900 cursor-pointer"
-                                />
-                              </div>
-                            </td>
-                            <td className="hidden md:table-cell app__td">
-                              <span className="font-bold text-lg">
-                                {Number(product.total).toLocaleString("en-US")}
-                              </span>
-                            </td>
-                          </tr>
+                                {/* End - Mobile View */}
+                              </th>
+                              <td className="hidden md:table-cell app__td">
+                                <span className="text-lg">{product.cost}</span>
+                              </td>
+                              <td className="hidden md:table-cell app__td">
+                                <span className="text-lg">
+                                  {product.rdt_product_units?.name}
+                                </span>
+                              </td>
+                              <td className="hidden md:table-cell app__td">
+                                <span className="text-lg">
+                                  {Number(product.price).toLocaleString(
+                                    'en-US'
+                                  )}
+                                </span>
+                              </td>
+                              <td className="hidden md:table-cell app__td">
+                                <div className="flex items-center justify-center space-x-2">
+                                  <PlusCircleIcon
+                                    onClick={() => handleAddQuantity(product)}
+                                    className="w-6 h-6 text-green-600 cursor-pointer"
+                                  />
+                                  <input
+                                    type="number"
+                                    onChange={(e) =>
+                                      handleChangeQuantity(
+                                        e.target.value,
+                                        product
+                                      )
+                                    }
+                                    className="font-bold text-lg outline-none appearance-none w-14"
+                                    value={product.quantity}
+                                  />
+                                  <MinusCircleIcon
+                                    onClick={() =>
+                                      handleDeductQuantity(product)
+                                    }
+                                    className="w-6 h-6 text-cyan-900 cursor-pointer"
+                                  />
+                                </div>
+                              </td>
+                              <td className="hidden md:table-cell app__td">
+                                <span className="font-bold text-lg">
+                                  {Number(product.total).toLocaleString(
+                                    'en-US'
+                                  )}
+                                </span>
+                              </td>
+                            </tr>
+                          </React.Fragment>
                         ))}
+                        <tr className="app__tr">
+                          <th className="app__td"></th>
+                          <td className="app__td text-right">
+                            <span className="text-lg font-extralight">
+                              Total Cost:
+                            </span>
+                          </td>
+                          <td
+                            className="app__td"
+                            colSpan={5}>
+                            <span className="text-lg">{cartTotalCost}</span>
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </>
@@ -621,9 +741,9 @@ const Page: React.FC = () => {
           <div className="w-full md:w-1/3">
             <div className="w-full bg-green-600 px-4 py-2">
               <div className="text-white text-xl">
-                Total:{" "}
+                Total:{' '}
                 <span className="font-bold text-4xl">
-                  {Number(cartTotal).toLocaleString("en-US")}
+                  {Number(cartTotal).toLocaleString('en-US')}
                 </span>
               </div>
             </div>
@@ -644,7 +764,7 @@ const Page: React.FC = () => {
                       className="p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none"
                     />
                   </div>
-                  {errorCustomer !== "" && (
+                  {errorCustomer !== '' && (
                     <div className="app__error_message">{errorCustomer}</div>
                   )}
                   <div className="font-medium mt-6">Type of Payment</div>
@@ -653,8 +773,8 @@ const Page: React.FC = () => {
                       <label className="inline-flex space-x-2">
                         <input
                           type="radio"
-                          checked={paymentType === "cash"}
-                          onChange={() => setPaymentType("cash")}
+                          checked={paymentType === 'cash'}
+                          onChange={() => setPaymentType('cash')}
                           className="focus:ring-0"
                         />
                         <span>Cash</span>
@@ -662,8 +782,8 @@ const Page: React.FC = () => {
                       <label className="inline-flex space-x-2">
                         <input
                           type="radio"
-                          checked={paymentType === "credit"}
-                          onChange={() => setPaymentType("credit")}
+                          checked={paymentType === 'credit'}
+                          onChange={() => setPaymentType('credit')}
                           className="focus:ring-0"
                         />
                         <span>Credit Terms</span>
@@ -671,8 +791,8 @@ const Page: React.FC = () => {
                       <label className="inline-flex space-x-2">
                         <input
                           type="radio"
-                          checked={paymentType === "check"}
-                          onChange={() => setPaymentType("check")}
+                          checked={paymentType === 'check'}
+                          onChange={() => setPaymentType('check')}
                           className="focus:ring-0"
                         />
                         <span>Cheque</span>
@@ -680,15 +800,15 @@ const Page: React.FC = () => {
                       <label className="inline-flex space-x-2">
                         <input
                           type="radio"
-                          checked={paymentType === "card"}
-                          onChange={() => setPaymentType("card")}
+                          checked={paymentType === 'card'}
+                          onChange={() => setPaymentType('card')}
                           className="focus:ring-0"
                         />
                         <span>Credit/Debit Card</span>
                       </label>
                     </div>
                   </div>
-                  {paymentType === "check" && (
+                  {paymentType === 'check' && (
                     <>
                       <div className="font-medium mt-6">Cheque Date</div>
                       <div className="mt-2">
@@ -698,23 +818,23 @@ const Page: React.FC = () => {
                           onChange={(e) => setCheckDate(e.target.value)}
                           className="p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none"
                         />
-                        {errorDate !== "" && (
+                        {errorDate !== '' && (
                           <div className="app__error_message">{errorDate}</div>
                         )}
                       </div>
                     </>
                   )}
-                  {(paymentType === "cash" ||
-                    paymentType === "check" ||
-                    paymentType === "card") && (
+                  {(paymentType === 'cash' ||
+                    paymentType === 'check' ||
+                    paymentType === 'card') && (
                     <>
-                      {paymentType === "cash" && (
+                      {paymentType === 'cash' && (
                         <div className="font-medium mt-6">Cash:</div>
                       )}
-                      {paymentType === "check" && (
+                      {paymentType === 'check' && (
                         <div className="font-medium mt-6">Cheque Amount:</div>
                       )}
-                      {paymentType === "card" && (
+                      {paymentType === 'card' && (
                         <div className="font-medium mt-6">Amount:</div>
                       )}
                       <div className="mt-2">
@@ -723,27 +843,50 @@ const Page: React.FC = () => {
                           step="any"
                           value={cash}
                           onChange={(e) => {
-                            setCash(e.target.value);
-                            const chnge = Number(e.target.value) - cartTotal;
+                            setCash(e.target.value)
+                            const chnge =
+                              Number(e.target.value) -
+                              (cartTotal - Number(discount))
                             if (chnge >= 0) {
-                              setChange(chnge);
+                              setChange(chnge)
                             } else {
-                              setChange(0);
+                              setChange(0)
                             }
                           }}
                           placeholder="Amount"
                           className="p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none"
                         />
                       </div>
+                      <div className="font-medium mt-6">Less Discount:</div>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          step="any"
+                          value={discount}
+                          onChange={(e) => {
+                            setDiscount(e.target.value)
+                            const chnge =
+                              Number(cash) -
+                              (cartTotal - Number(e.target.value))
+                            if (chnge >= 0) {
+                              setChange(chnge)
+                            } else {
+                              setChange(0)
+                            }
+                          }}
+                          placeholder="Less Discount"
+                          className="p-2 w-full text-gray-900  rounded-lg border border-gray-300 outline-none"
+                        />
+                      </div>
                       <div className="font-medium mt-6">Change:</div>
                       <div className="mt-2 text-xl p-3 bg-green-300">
                         <span className="font-bold text-2xl">
-                          {Number(change).toLocaleString("en-US")}
+                          {Number(change).toLocaleString('en-US')}
                         </span>
                       </div>
                     </>
                   )}
-                  {paymentType === "credit" && (
+                  {paymentType === 'credit' && (
                     <>
                       <div className="font-medium mt-6">
                         Credit Terms (Days)
@@ -760,11 +903,11 @@ const Page: React.FC = () => {
                     </>
                   )}
                   <div className="font-medium mt-6 flex space-x-4">
-                    {(((paymentType === "cash" ||
-                      paymentType === "check" ||
-                      paymentType === "card") &&
+                    {(((paymentType === 'cash' ||
+                      paymentType === 'check' ||
+                      paymentType === 'card') &&
                       Number(cash) >= cartTotal) ||
-                      paymentType === "credit") && (
+                      paymentType === 'credit') && (
                       <CustomButton
                         containerStyles="bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-500 border border-emerald-600 font-bold px-2 py-2 text-sm text-white rounded-sm"
                         title="Complete Purchase"
@@ -806,6 +949,6 @@ const Page: React.FC = () => {
         />
       )}
     </>
-  );
-};
-export default Page;
+  )
+}
+export default Page
