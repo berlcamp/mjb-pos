@@ -380,7 +380,7 @@ const Page: React.FC = () => {
       const cartWithIntegers = cart.map((item) => ({
         ...item,
         id: Number(item.id), // Ensure product IDs are integers
-        quantity: Number(item.quantity),
+        quantity: Number(item.quantity), // Allow float values
         price: Number(item.price),
         total: Number(item.total),
       }))
