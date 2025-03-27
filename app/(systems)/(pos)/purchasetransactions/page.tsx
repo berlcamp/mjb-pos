@@ -113,28 +113,24 @@ const Page: React.FC = () => {
           return accumulator + Number(sale.total)
         }, 0) // get the sum of total price
 
-      // Calculate the profit
+      // Calculate Total Cost from rdt_products
       let costTotal = 0
+
       saleTransactions
         .filter((s) => s.status !== 'Cancelled')
         .forEach((s) => {
-          const cart: ProductTypes[] = s.products
-          if (cart && cart.length > 0) {
-            const totalCost = cart.reduce(
-              (accumulator: number, p: ProductTypes) => {
-                if (p.total_cost) {
-                  return accumulator + Number(p.total_cost)
-                } else {
-                  return accumulator
-                }
-              },
-              0
-            ) // get the sum of total cost
-            costTotal += totalCost
+          if (s.rdt_sales) {
+            s.rdt_sales.forEach((saleItem) => {
+              if (saleItem.rdt_products) {
+                costTotal +=
+                  Number(saleItem.rdt_products.cost) * Number(saleItem.quantity)
+              }
+            })
           }
         })
 
       setTotalCost(costTotal)
+
       setTotalSales(salesTotal)
     } catch (e) {
       console.error(e)

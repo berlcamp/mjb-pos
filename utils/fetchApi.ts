@@ -648,7 +648,7 @@ export async function fetchSaleTransactions(
     let query = supabase
       .from('rdt_sale_transactions')
       .select(
-        '*, rdt_users(name,avatar_url), rdt_sales(*, rdt_products(cost,description))',
+        '*, rdt_users(name,avatar_url), rdt_sales(*, rdt_products(id,cost,description))',
         { count: 'exact' }
       )
 
