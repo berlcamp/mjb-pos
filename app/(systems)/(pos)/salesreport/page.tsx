@@ -46,14 +46,16 @@ const SummaryReport = () => {
       return
     }
 
-    // Ensure all values are set to 0 if undefined
+    console.log('data', data)
+
+    // Ensure numeric fields are correctly formatted to avoid undefined values
     const formattedData =
       data?.map((entry: any) => ({
         date: entry.date,
-        totalSales: entry.totalSales ?? 0,
-        totalProfit: entry.totalProfit ?? 0,
-        totalDiscounts: entry.totalDiscounts ?? 0,
-        totalCost: entry.totalCost ?? 0,
+        totalSales: parseFloat(entry.totalsales) || 0,
+        totalProfit: parseFloat(entry.totalprofit) || 0,
+        totalDiscounts: parseFloat(entry.totaldiscounts) || 0,
+        totalCost: parseFloat(entry.totalcost) || 0,
       })) || []
 
     setSummaryData(formattedData)
