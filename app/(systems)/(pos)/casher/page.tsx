@@ -505,7 +505,7 @@ const Page: React.FC = () => {
                           <tr className="bg-gray-600 text-white border-b hover:bg-gray-500 cursor-pointer">
                             <td
                               className="py-2 text-center"
-                              colSpan={4}>
+                              colSpan={5}>
                               Searching
                             </td>
                           </tr>
