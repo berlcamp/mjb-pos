@@ -119,11 +119,10 @@ const Page: React.FC = () => {
       saleTransactions
         .filter((s) => s.status !== 'Cancelled')
         .forEach((s) => {
-          if (s.rdt_sales) {
-            s.rdt_sales.forEach((saleItem) => {
-              if (saleItem.rdt_products) {
-                costTotal +=
-                  Number(saleItem.rdt_products.cost) * Number(saleItem.quantity)
+          if (s.products) {
+            s.products.forEach((p) => {
+              if (p.cost) {
+                costTotal += Number(p.cost) * Number(p.quantity)
               }
             })
           }
@@ -576,8 +575,11 @@ const Page: React.FC = () => {
                       <td className="hidden md:table-cell app__td">
                         {item.products?.reduce(
                           (accumulator: number, p: ProductTypes) => {
-                            if (p.total_cost) {
-                              return accumulator + Number(p.total_cost)
+                            if (p.cost) {
+                              return (
+                                accumulator +
+                                Number(p.cost) * Number(p.quantity)
+                              )
                             } else {
                               return accumulator
                             }
@@ -590,8 +592,11 @@ const Page: React.FC = () => {
                           ? Number(item.total) -
                             item.products?.reduce(
                               (accumulator: number, p: ProductTypes) => {
-                                if (p.total_cost) {
-                                  return accumulator + Number(p.total_cost)
+                                if (p.cost) {
+                                  return (
+                                    accumulator +
+                                    Number(p.cost) * Number(p.quantity)
+                                  )
                                 } else {
                                   return accumulator
                                 }
